@@ -156,6 +156,71 @@
         let myStream;
         let p;
         let micOn = true, camOn = true;
+        let lastFaceSignal = 62;
+        let lastEmotion = 'neutral';
+        let publishTimer;
+
+        function computeEmotionAndMetrics() {
+            let emotion = 'neutral';
+            let engagement = 68;
+            let confusion = 24;
+
+            if (!camOn && !micOn) {
+                emotion = 'distracted';
+                engagement = 20;
+                confusion = 65;
+            } else if (!camOn) {
+                emotion = 'distracted';
+                engagement = 35;
+                confusion = 55;
+            } else if (!micOn) {
+                emotion = 'neutral';
+                engagement = 55;
+                confusion = 35;
+            }
+
+            const delta = Math.floor(Math.random() * 21) - 10;
+            const faceSignal = Math.max(0, Math.min(100, lastFaceSignal + delta));
+            const faceDrop = lastFaceSignal - faceSignal;
+            lastFaceSignal = faceSignal;
+
+            const jitter = Math.floor(Math.random() * 10) - 5;
+            engagement = Math.max(0, Math.min(100, engagement + Math.floor((faceSignal - 50) / 2) + jitter));
+            confusion = Math.max(0, Math.min(100, confusion + Math.floor((50 - faceSignal) / 2) - jitter));
+
+            if (faceDrop >= 12) {
+                confusion = Math.min(100, confusion + 16);
+            }
+
+            if (confusion >= 55) emotion = 'confused';
+            if (engagement >= 75 && confusion <= 35) emotion = 'engaged';
+
+            if (lastEmotion !== 'confused' && emotion === 'confused') {
+                confusion = Math.min(100, confusion + 12);
+            }
+
+            lastEmotion = emotion;
+
+            return { emotion, engagement, confusion };
+        }
+
+        function publishMetrics() {
+            const metrics = computeEmotionAndMetrics();
+            socket.emit('update_metrics', metrics);
+
+            const badge = document.getElementById('emotionBadge');
+            badge.innerText = `Emotion: ${metrics.emotion} | Engagement ${metrics.engagement}% | Confusion ${metrics.confusion}%`;
+            if (metrics.emotion === 'engaged') {
+                badge.style.borderColor = 'rgba(34, 197, 94, 0.7)';
+                badge.style.background = 'rgba(34, 197, 94, 0.2)';
+            } else if (metrics.emotion === 'confused') {
+                badge.style.borderColor = 'rgba(239, 68, 68, 0.7)';
+                badge.style.background = 'rgba(239, 68, 68, 0.2)';
+            } else {
+                badge.style.borderColor = 'rgba(59, 130, 246, 0.5)';
+                badge.style.background = 'rgba(59, 130, 246, 0.2)';
+            }
+        }
 
         function computeEmotionAndMetrics() {
             let emotion = 'neutral';
@@ -214,7 +279,11 @@
                     name: "{{ session['student_name'] }}"
                 });
                 publishMetrics();
+<<<<<<< HEAD
+                publishTimer = setInterval(publishMetrics, 2000);
+=======
                 setInterval(publishMetrics, 3500);
+>>>>>>> origin/main
             } catch (e) {
                 alert("Camera access required for class.");
             }
@@ -236,6 +305,10 @@
         });
 
         function toggleMic() {
+<<<<<<< HEAD
+            if (!myStream || !myStream.getAudioTracks().length) return;
+=======
+>>>>>>> origin/main
             micOn = !micOn;
             myStream.getAudioTracks()[0].enabled = micOn;
             document.getElementById('sMic').classList.toggle('off');
@@ -244,6 +317,10 @@
         }
 
         function toggleCam() {
+<<<<<<< HEAD
+            if (!myStream || !myStream.getVideoTracks().length) return;
+=======
+>>>>>>> origin/main
             camOn = !camOn;
             myStream.getVideoTracks()[0].enabled = camOn;
             document.getElementById('sCam').classList.toggle('off');
@@ -252,8 +329,20 @@
         }
 
         function exitRoom() {
+<<<<<<< HEAD
+            if (publishTimer) {
+                clearInterval(publishTimer);
+            }
             if (confirm("Leave the classroom?")) location.href = '/logout';
         }
+
+        socket.on('teacher_message', data => {
+            alert(`Message from ${data.teacher}: ${data.message}`);
+        });
+=======
+            if (confirm("Leave the classroom?")) location.href = '/logout';
+        }
+>>>>>>> origin/main
 
         window.onload = init;
     </script>
