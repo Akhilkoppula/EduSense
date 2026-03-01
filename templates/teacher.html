@@ -9,174 +9,519 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-peer/9.11.1/simplepeer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --primary: #3b82f6;
-            --danger: #ef4444;
-            --bg: #0b0f1a;
-            --panel: rgba(255, 255, 255, 0.03);
+        * {
+            box-sizing: border-box;
         }
 
         body {
             margin: 0;
             font-family: 'Segoe UI', sans-serif;
-            background: var(--bg);
-            color: white;
+            background: #f1f1f1;
+            color: #111;
             height: 100vh;
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: 1fr 44px 0.95fr 64px;
+            border: 3px solid #111;
+        }
+
+        .top-grid {
+            min-height: 0;
+            display: grid;
+            grid-template-columns: 1fr 1.6fr;
+            border-bottom: 3px solid #111;
+        }
+
+        .top-left,
+        .top-right,
+        .bottom-left,
+        .bottom-right {
+            min-height: 0;
             display: flex;
             flex-direction: column;
+            border-right: 3px solid #111;
+        }
+
+        .top-right,
+        .bottom-right {
+            border-right: none;
+        }
+
+        .mid-strip {
+            display: grid;
+            grid-template-columns: 1fr 1.6fr;
+            align-items: center;
+            border-bottom: 3px solid #111;
+            font-weight: 700;
+            background: #f7f7f7;
+        }
+
+        .mid-strip>div {
+            padding: 0 12px;
+            border-right: 3px solid #111;
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .mid-strip>div:last-child {
+            border-right: none;
+        }
+
+        .bottom-grid {
+            min-height: 0;
+            display: grid;
+            grid-template-columns: 1fr 1.6fr;
+            border-bottom: 3px solid #111;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            padding: 16px 20px 0;
+            font-weight: 700;
+        }
+
+        .graph-title {
+            font-size: 40px;
+            line-height: 1.2;
+            max-width: 560px;
+        }
+
+        .prof-title {
+            font-size: 44px;
+            align-self: center;
+            margin-top: 10px;
+        }
+
+        .graph-area,
+        .video-area {
+            flex: 1;
+            min-height: 0;
+            padding: 10px 16px 12px;
+        }
+
+        .graph-area canvas {
+            width: 100% !important;
+            height: 100% !important;
+            border: 1px solid #aaa;
+            background: #fff;
+        }
+
+        #tVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border: 2px solid #222;
+            background: #000;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 14px;
+            font-size: 18px;
+            padding: 8px 16px 0;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            margin: 6px 16px;
+            border: 2px solid #666;
+            border-radius: 6px;
+            background: #ececec;
+            padding: 6px 10px;
+            font-size: 16px;
+            font-weight: 600;
+            width: fit-content;
+        }
+
+        .teacher-alert {
+            margin: 0 16px 8px;
+            padding: 8px 10px;
+            border: 2px solid #9f2222;
+            background: #ffe3e3;
+            border-radius: 6px;
+            font-size: 15px;
+            display: none;
+        }
+
+        .alert-copy {
+            font-size: 18px;
+            text-align: center;
+            line-height: 1.5;
+            padding: 8px 14px;
+            font-weight: 600;
+        }
+
+        .sustained-list {
+            margin: 0 16px 14px;
+            padding: 10px;
+            list-style: none;
+            border: 2px solid #444;
+            background: #fff;
+            border-radius: 6px;
+            overflow-y: auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 15px;
+        }
+
+        .sustained-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .gallery-area {
+            flex: 1;
+            min-height: 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 8px;
+            background: #f4f4f4;
+        }
+
+        .student-row {
+            display: flex;
+            gap: 0;
+            height: 100%;
+            min-height: 190px;
+            width: max-content;
+        }
+
+        .grid-slot {
+            width: 280px;
+            height: 100%;
+            border-right: 3px solid #111;
+            border-left: 3px solid #111;
+            border-top: 3px solid #111;
+            border-bottom: 3px solid #111;
+            position: relative;
+            background: #ddd;
+            flex: 0 0 auto;
             overflow: hidden;
         }
 
-        .workspace {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 1.2fr 1fr;
-            grid-template-rows: 1.4fr 0.6fr;
-            gap: 12px;
-            padding: 12px;
-            box-sizing: border-box;
-            min-height: 0;
+        .grid-slot+ .grid-slot {
+            margin-left: -3px;
         }
 
-        .analysis-panel {
-            grid-row: span 2;
-        }
-
-        .panel {
-            background: var(--panel);
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-        }
-
-        .panel-header {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 5px 12px;
-            font-size: 0.65rem;
-            font-weight: bold;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        video {
+        .grid-slot video {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .session-stats {
-            background: var(--primary);
-            margin: 10px;
-            padding: 10px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-around;
-            font-weight: bold;
-            font-size: 0.8rem;
+        .grid-tag {
+            position: absolute;
+            left: 8px;
+            bottom: 8px;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 3px 7px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 2;
         }
 
         .control-bar {
-            height: 70px;
-            background: rgba(15, 23, 42, 0.95);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 18px;
+            background: #ececec;
         }
 
-        .student-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            flex: 1;
+        .btn-ctrl,
+        .end-btn {
+            border: 2px solid #111;
+            background: #fff;
+            color: #111;
+            border-radius: 8px;
+            height: 42px;
+            min-width: 42px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0 14px;
         }
 
-        .grid-slot {
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            background: #000;
-            overflow: hidden;
+        .btn-ctrl.off {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        @media (max-width: 1240px) {
+            body {
+                height: auto;
+                min-height: 100vh;
+                overflow: auto;
+                grid-template-rows: auto 44px auto 64px;
+            }
+
+            .top-grid,
+            .mid-strip,
+            .bottom-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .top-left,
+            .bottom-left {
+                border-right: none;
+                border-bottom: 3px solid #111;
+            }
+
+            .mid-strip>div {
+                border-right: none;
+                border-bottom: 2px solid #111;
+            }
+
+            .mid-strip>div:last-child {
+                border-bottom: none;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="workspace">
-        <div class="panel analysis-panel">
-            <div class="panel-header">LIVE ENGAGEMENT & CONFUSION TRACKER</div>
-            <div style="flex: 1; padding: 10px;"><canvas id="liveChart"></canvas></div>
-            <div class="session-stats"><span>ONLINE: <span id="onlineCount">0</span></span><span id="alertBox">ALERT:
-                    NORMAL</span></div>
+    <section class="top-grid">
+        <div class="top-left">
+            <div class="section-title graph-title">Graph (Student engagement and confusion)</div>
+            <div class="graph-area"><canvas id="liveChart"></canvas></div>
+            <div class="stats-row">
+                <span>ONLINE: <strong id="joinedCount">0</strong></span>
+                <span>ACTIVE ALERTS: <strong id="activeAlerts">0</strong></span>
+            </div>
+            <div class="status-badge" id="statusBadge">Status: Normal</div>
         </div>
-        <div class="panel">
-            <div class="panel-header">PROFESSOR (LIVE)</div>
-            <video id="tVideo" autoplay muted playsinline></video>
-        </div>
-        <div class="panel">
-            <div class="panel-header">STUDENTS REQUIRING ATTENTION</div>
-            <div class="student-grid" id="studentGallery">
-                <div class="grid-slot"></div>
-                <div class="grid-slot"></div>
-                <div class="grid-slot"></div>
-                <div class="grid-slot"></div>
+
+        <div class="top-right">
+            <div class="section-title prof-title">Professor live sceen</div>
+            <div class="video-area">
+                <video id="tVideo" autoplay muted playsinline></video>
             </div>
         </div>
-    </div>
+    </section>
+
+    <section class="mid-strip">
+        <div>Students joined: <strong id="joinedCountStrip" style="margin-left:8px;">0</strong></div>
+        <div>student gallery</div>
+    </section>
+
+    <section class="bottom-grid">
+        <div class="bottom-left">
+            <div class="alert-copy">Alerts coming space like chatbox if any student confused more than a minute, their name should be come as an alert to teacher</div>
+            <div class="teacher-alert" id="teacherAlert"></div>
+            <ul class="sustained-list" id="sustainedList"></ul>
+        </div>
+
+        <div class="bottom-right">
+            <div class="gallery-area">
+                <div class="student-row" id="studentGallery"></div>
+            </div>
+        </div>
+    </section>
+
     <div class="control-bar">
-        <button class="btn-ctrl" onclick="toggleMic()"><i class="fas fa-microphone"></i></button>
-        <button class="btn-ctrl" onclick="toggleCam()"><i class="fas fa-video"></i></button>
-        <button
-            style="background:var(--danger); border:none; color:white; padding:10px 20px; border-radius:8px; cursor:pointer;"
-            onclick="location.href='/teacher_console'">End Session</button>
+        <button class="btn-ctrl" id="tMic"><i class="fas fa-microphone"></i></button>
+        <button class="btn-ctrl" id="tCam"><i class="fas fa-video"></i></button>
+        <button class="end-btn" onclick="location.href='/teacher_console'">End Session</button>
     </div>
+
     <script>
         const socket = io();
-        let myStream; const peers = {};
+        let myStream;
+        const peers = {};
+        const slots = {};
+        let tMicOn = true;
+        let tCamOn = true;
 
-        // Chart.js Init
         const ctx = document.getElementById('liveChart').getContext('2d');
         const liveChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: Array(20).fill(''), datasets: [
-                    { label: 'Engagement', data: Array(20).fill(0), borderColor: '#3b82f6', tension: 0.4 },
-                    { label: 'Confusion', data: Array(20).fill(0), borderColor: '#ef4444', tension: 0.4 }
+                labels: Array(24).fill(''),
+                datasets: [
+                    { label: 'Engagement', data: Array(24).fill(0), borderColor: '#2563eb', tension: 0.24 },
+                    { label: 'Confusion', data: Array(24).fill(0), borderColor: '#dc2626', tension: 0.24 }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, max: 100 } },
+                plugins: { legend: { labels: { color: '#111' } } }
+            }
         });
 
-        async function init() {
-            myStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            document.getElementById('tVideo').srcObject = myStream;
-            socket.emit('join_room', { room: "global_room", name: "Teacher" });
+        function setJoinedCount(count) {
+            document.getElementById('joinedCount').textContent = count;
+            document.getElementById('joinedCountStrip').textContent = count;
         }
 
-        socket.on('new_student', data => {
-            const peer = new SimplePeer({ initiator: true, stream: myStream });
-            peer.on('signal', signal => socket.emit('signal', { to: data.sid, signal }));
+        function addStudentSlot(sid, name) {
+            if (slots[sid]) return slots[sid];
+            const gallery = document.getElementById('studentGallery');
+            const slot = document.createElement('div');
+            slot.className = 'grid-slot';
+            slot.dataset.sid = sid;
+
+            const tag = document.createElement('div');
+            tag.className = 'grid-tag';
+            tag.textContent = name || 'Student';
+            slot.appendChild(tag);
+            gallery.appendChild(slot);
+            slots[sid] = slot;
+            return slot;
+        }
+
+        function removeStudentSlot(sid) {
+            if (!slots[sid]) return;
+            slots[sid].remove();
+            delete slots[sid];
+        }
+
+        function pushChartPoint(engagement, confusion) {
+            liveChart.data.datasets[0].data.shift();
+            liveChart.data.datasets[0].data.push(engagement);
+            liveChart.data.datasets[1].data.shift();
+            liveChart.data.datasets[1].data.push(confusion);
+            liveChart.update('none');
+        }
+
+        function showTeacherAlert(message) {
+            const alertPanel = document.getElementById('teacherAlert');
+            alertPanel.textContent = message;
+            alertPanel.style.display = 'block';
+            setTimeout(() => {
+                alertPanel.style.display = 'none';
+            }, 5000);
+        }
+
+        function ensureTeacherPeer(student) {
+            if (peers[student.sid]) {
+                peers[student.sid].destroy();
+                delete peers[student.sid];
+            }
+
+            addStudentSlot(student.sid, student.name);
+            const peerConfig = { initiator: true, trickle: false };
+            if (myStream) peerConfig.stream = myStream;
+
+            const peer = new SimplePeer(peerConfig);
+            peer.on('signal', signal => socket.emit('signal', { to: student.sid, signal }));
             peer.on('stream', stream => {
-                let slot = [...document.querySelectorAll('.grid-slot')].find(s => !s.hasChildNodes());
-                if (slot) {
-                    let vid = document.createElement('video');
-                    vid.srcObject = stream; vid.autoplay = true; vid.style.width = "100%"; vid.style.height = "100%"; vid.style.objectFit = "cover";
-                    slot.appendChild(vid);
+                const slot = addStudentSlot(student.sid, student.name);
+                let video = slot.querySelector('video');
+                if (!video) {
+                    video = document.createElement('video');
+                    video.autoplay = true;
+                    video.playsInline = true;
+                    slot.prepend(video);
                 }
+                video.srcObject = stream;
             });
-            peers[data.sid] = peer;
-            document.getElementById('onlineCount').innerText = Object.keys(peers).length;
+
+            peer.on('error', () => {
+                showTeacherAlert(`Reconnecting media with ${student.name || 'student'}...`);
+            });
+
+            peers[student.sid] = peer;
+        }
+
+        async function init() {
+            try {
+                myStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('tVideo').srcObject = myStream;
+            } catch (error) {
+                showTeacherAlert('Camera or microphone permission was blocked. Analytics will continue.');
+            }
+
+            socket.emit('join_room', { room: 'global_room', role: 'teacher', name: 'Teacher' });
+        }
+
+        socket.on('new_student', student => ensureTeacherPeer(student));
+
+        socket.on('student_left', data => {
+            if (peers[data.sid]) {
+                peers[data.sid].destroy();
+                delete peers[data.sid];
+            }
+            removeStudentSlot(data.sid);
         });
 
-        socket.on('signal', data => { if (peers[data.sid]) peers[data.sid].signal(data.signal); });
+        socket.on('signal', data => {
+            if (peers[data.sid]) {
+                peers[data.sid].signal(data.signal);
+            }
+        });
 
-        // Update Graph with Real Student Data
-        socket.on('metrics_received', data => {
-            liveChart.data.datasets[0].data.shift();
-            liveChart.data.datasets[0].data.push(data.engagement);
-            liveChart.data.datasets[1].data.shift();
-            liveChart.data.datasets[1].data.push(data.confusion);
-            liveChart.update('none');
-            if (data.confusion > 50) document.getElementById('alertBox').style.color = 'orange';
+        socket.on('confusion_alert', data => {
+            showTeacherAlert(`🚨 ${data.message}`);
+        });
+
+        socket.on('class_summary', summary => {
+            setJoinedCount(summary.online || 0);
+            document.getElementById('activeAlerts').textContent = summary.active_alerts || 0;
+
+            const sustained = document.getElementById('sustainedList');
+            sustained.innerHTML = '';
+            const sustainedStudents = summary.sustained_students || [];
+
+            if (!sustainedStudents.length) {
+                const row = document.createElement('li');
+                row.textContent = 'No student confused more than 1 minute.';
+                sustained.appendChild(row);
+            } else {
+                sustainedStudents.forEach(student => {
+                    const row = document.createElement('li');
+                    row.className = 'sustained-item';
+                    const left = document.createElement('span');
+                    left.textContent = `${student.name} is confusing`;
+                    const right = document.createElement('strong');
+                    right.textContent = `${student.confused_for_seconds}s`;
+                    row.appendChild(left);
+                    row.appendChild(right);
+                    sustained.appendChild(row);
+                });
+            }
+
+            pushChartPoint(summary.engagement || 0, summary.confusion || 0);
+
+            const statusBadge = document.getElementById('statusBadge');
+            if ((summary.active_alerts || 0) > 0) {
+                statusBadge.textContent = 'Status: Sustained confusion detected';
+                statusBadge.style.borderColor = 'rgba(180, 83, 9, 0.9)';
+                statusBadge.style.background = 'rgba(245, 158, 11, 0.2)';
+            } else if ((summary.confusion || 0) > 50) {
+                statusBadge.textContent = 'Status: Class confusion is high';
+                statusBadge.style.borderColor = 'rgba(180, 83, 9, 0.8)';
+                statusBadge.style.background = 'rgba(245, 158, 11, 0.2)';
+            } else {
+                statusBadge.textContent = 'Status: Normal';
+                statusBadge.style.borderColor = 'rgba(59, 130, 246, 0.45)';
+                statusBadge.style.background = 'rgba(59, 130, 246, 0.16)';
+            }
+        });
+
+        document.getElementById('tMic').addEventListener('click', () => {
+            if (!myStream || !myStream.getAudioTracks().length) return;
+            tMicOn = !tMicOn;
+            myStream.getAudioTracks()[0].enabled = tMicOn;
+            const btn = document.getElementById('tMic');
+            btn.classList.toggle('off', !tMicOn);
+            btn.innerHTML = tMicOn ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
+        });
+
+        document.getElementById('tCam').addEventListener('click', () => {
+            if (!myStream || !myStream.getVideoTracks().length) return;
+            tCamOn = !tCamOn;
+            myStream.getVideoTracks()[0].enabled = tCamOn;
+            const btn = document.getElementById('tCam');
+            btn.classList.toggle('off', !tCamOn);
+            btn.innerHTML = tCamOn ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
         });
 
         window.onload = init;
