@@ -292,7 +292,7 @@
 
         socket.on('signal', data => {
             if (!p) {
-                p = new SimplePeer({ initiator: false, stream: myStream });
+                p = new SimplePeer({ initiator: false, trickle: false, stream: myStream });
                 p.on('signal', signal => socket.emit('signal', { to: data.sid, signal }));
                 p.on('stream', stream => {
                     document.getElementById('teacherVid').srcObject = stream;

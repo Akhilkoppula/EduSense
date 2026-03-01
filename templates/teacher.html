@@ -12,19 +12,25 @@
         :root {
             --primary: #3b82f6;
             --danger: #ef4444;
-            --bg: #0b0f1a;
-            --panel: rgba(255, 255, 255, 0.03);
+            --success: #22c55e;
+            --bg: #0b1220;
+            --panel: #111b2e;
+            --panel-soft: #17233a;
+            --line: rgba(255, 255, 255, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
             margin: 0;
             font-family: 'Segoe UI', sans-serif;
             background: var(--bg);
-            color: white;
-            height: 100vh;
+            color: #fff;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
         }
 
         .workspace {
@@ -36,6 +42,16 @@
             padding: 12px;
             box-sizing: border-box;
             min-height: 0;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(0, 0, 0, 0.25);
         }
 
         @media (max-width: 1100px) {
@@ -59,15 +75,104 @@
         }
 
         .analysis-panel {
-            grid-row: span 2;
+            display: grid;
+            grid-template-rows: auto minmax(180px, 1fr) auto auto auto;
+            gap: 10px;
+            padding: 0 0 12px;
         }
 
-        .panel {
-            background: var(--panel);
+        .chart-wrap {
+            padding: 0 12px;
+            min-height: 0;
+        }
+
+        .session-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            padding: 0 12px;
+        }
+
+        .stat-item {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.45);
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 0.8rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .teacher-alert {
+            margin: 0 12px;
+            padding: 9px 10px;
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.45);
+            background: rgba(239, 68, 68, 0.16);
+            font-size: 0.78rem;
+            display: none;
+        }
+
+        .emotion-counters {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            padding: 0 12px;
+        }
+
+        .emotion-pill {
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 8px 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+        }
+
+        .attention-list {
+            margin: 0 12px;
+            padding: 0;
+            list-style: none;
             display: flex;
             flex-direction: column;
+            gap: 8px;
+            max-height: 165px;
+            overflow-y: auto;
+        }
+
+        .attention-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            border-radius: 9px;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            background: rgba(239, 68, 68, 0.12);
+            font-size: 0.76rem;
+            padding: 8px 10px;
+        }
+
+        .attention-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .attention-item button {
+            border: 1px solid rgba(59, 130, 246, 0.75);
+            background: rgba(59, 130, 246, 0.25);
+            color: white;
+            border-radius: 7px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.72rem;
+        }
+
+        .video-column {
+            display: grid;
+            grid-template-rows: minmax(200px, 42%) minmax(280px, 58%);
+            gap: 14px;
             min-height: 0;
         }
 
@@ -84,12 +189,37 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            background: #000;
         }
 
-        .session-stats {
-            background: var(--primary);
-            margin: 10px;
+        .teacher-video-wrap {
+            flex: 1;
+            min-height: 0;
             padding: 10px;
+        }
+
+        .teacher-video-wrap video {
+            border-radius: 10px;
+            border: 1px solid var(--line);
+        }
+
+        .gallery-wrap {
+            flex: 1;
+            min-height: 0;
+            padding: 10px;
+        }
+
+        .student-grid {
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        .grid-slot {
+            border: 1px solid var(--line);
             border-radius: 8px;
             display: flex;
             justify-content: space-between;
@@ -134,8 +264,9 @@
         }
 
         .control-bar {
-            height: 70px;
-            background: rgba(15, 23, 42, 0.95);
+            height: 74px;
+            border-top: 1px solid var(--line);
+            background: #0f172a;
             display: flex;
             justify-content: space-between;
         }
@@ -259,6 +390,7 @@
             </div>
         </div>
     </div>
+
     <div class="control-bar">
         <button class="btn-ctrl"><i class="fas fa-microphone"></i></button>
         <button class="btn-ctrl"><i class="fas fa-video"></i></button>
@@ -266,6 +398,7 @@
             style="background:var(--danger); border:none; color:white; padding:10px 20px; border-radius:8px; cursor:pointer;"
             onclick="location.href='/teacher_console'">End Session</button>
     </div>
+
     <script>
         const socket = io();
         let myStream;
@@ -279,7 +412,12 @@
                     { label: 'Confusion', data: Array(30).fill(0), borderColor: '#ef4444', tension: 0.3 }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, max: 100 } },
+                plugins: { legend: { labels: { color: '#dbeafe' } } }
+            }
         });
 
         function addStudentSlot(sid, name) {
