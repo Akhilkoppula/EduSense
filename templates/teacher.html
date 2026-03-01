@@ -257,6 +257,32 @@
         .grid-slot {
             border: 1px solid var(--line);
             border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            background: rgba(59, 130, 246, 0.18);
+            font-size: 0.78rem;
+            text-align: center;
+            padding: 7px 10px;
+            font-weight: 600;
+        }
+
+        .teacher-alert {
+            display: none;
+            border-radius: 8px;
+            border: 1px solid rgba(239, 68, 68, 0.45);
+            background: rgba(239, 68, 68, 0.16);
+            padding: 8px;
+            font-size: 0.76rem;
+        }
+
+        .sustained-list {
+            margin: 0;
+            padding: 10px;
+            list-style: none;
+            border: 1px solid rgba(245, 158, 11, 0.45);
+            background: rgba(245, 158, 11, 0.11);
+            border-radius: 8px;
+            overflow-y: auto;
+            min-height: 0;
             display: flex;
             justify-content: space-between;
             gap: 8px;
@@ -372,8 +398,10 @@
         }
 
         .grid-slot {
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            background: #000;
+            width: 240px;
+            min-height: 100%;
+            border: 1px solid var(--line);
+            border-radius: 8px;
             overflow: hidden;
             position: relative;
         }
@@ -411,10 +439,21 @@
                 <div class="emotion-pill"><span>Distracted</span><strong id="distractedCount">0</strong></div>
             </div>
         </div>
+
         <div class="panel">
-            <div class="panel-header">PROFESSOR (LIVE)</div>
-            <video id="tVideo" autoplay muted playsinline></video>
+            <div class="panel-header">Professor live sceen</div>
+            <div class="video-wrap">
+                <video id="tVideo" autoplay muted playsinline></video>
+            </div>
         </div>
+    </section>
+
+    <section class="mid-strip">
+        <div>Students joined: <span id="joinedCountStrip">0</span></div>
+        <div>student gallery (scroll to see every student)</div>
+    </section>
+
+    <section class="bottom-grid">
         <div class="panel">
             <div class="panel-header">STUDENTS REQUIRING ATTENTION</div>
             <div class="attention-list" id="attentionList"></div>

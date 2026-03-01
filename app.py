@@ -13,18 +13,12 @@ CLASSROOM_ROOM = "global_room"
 live_students = {}
 teacher_sid = None
 
-# In-memory live classroom state
-CLASSROOM_ROOM = "global_room"
-live_students = {}
-teacher_sid = None
-
 # --- MONGODB CONNECTION ---
 try:
     client = MongoClient("mongodb://localhost:27017/", serverSelectionTimeoutMS=2000)
     db = client["edusense_db"]
     teachers_col = db["teachers"]
     sessions_col = db["sessions"]
-    client.server_info()
     client.server_info()
     print("✅ MongoDB Connected")
 except Exception as e:
