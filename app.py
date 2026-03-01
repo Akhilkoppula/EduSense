@@ -13,6 +13,11 @@ CLASSROOM_ROOM = "global_room"
 live_students = {}
 teacher_sid = None
 
+# In-memory live classroom state
+CLASSROOM_ROOM = "global_room"
+live_students = {}
+teacher_sid = None
+
 # --- MONGODB CONNECTION ---
 try:
     client = MongoClient("mongodb://localhost:27017/", serverSelectionTimeoutMS=2000)
@@ -20,9 +25,11 @@ try:
     teachers_col = db["teachers"]
     sessions_col = db["sessions"]
     client.server_info()
+    client.server_info()
     print("✅ MongoDB Connected")
 except Exception as e:
     print(f"❌ MongoDB Error: {e}")
+
 
 
 # --- CORE ROUTES ---
@@ -33,10 +40,12 @@ def welcome():
     return render_template('welcome.html')
 
 
+
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('welcome'))
+
 
 
 # --- TEACHER MODULE ---
@@ -55,8 +64,11 @@ def teacher_login_page():
     return render_template('teacher_login.html')
 
 
+
 @app.route('/teacher_console')
 def teacher_console():
+    if 'teacher_name' not in session:
+        return redirect(url_for('teacher_login_page'))
     if 'teacher_name' not in session:
         return redirect(url_for('teacher_login_page'))
     upcoming = list(sessions_col.find({"teacher_email": session['teacher_email'], "status": "Pending"}))
@@ -64,11 +76,15 @@ def teacher_console():
     return render_template('teacher_console.html', name=session['teacher_name'], upcoming=upcoming, recent=recent)
 
 
+
 @app.route('/teacher_live')
 def teacher_live():
     if 'teacher_name' not in session:
         return redirect(url_for('teacher_login_page'))
+    if 'teacher_name' not in session:
+        return redirect(url_for('teacher_login_page'))
     return render_template('teacher.html')
+
 
 
 # --- STUDENT MODULE ---
@@ -79,11 +95,13 @@ def student_join_page():
     return render_template('student_join.html', auto_code=request.args.get('code', ''))
 
 
+
 @app.route('/verify_session', methods=['POST'])
 def verify_session():
     data = request.json
     sess = sessions_col.find_one({"passcode": data.get('passcode'), "status": "Pending"})
     if sess:
+        session['student_auth'] = True
         session['student_auth'] = True
         session['student_name'] = data.get('name')
         session['active_passcode'] = sess['passcode']
@@ -91,8 +109,11 @@ def verify_session():
     return jsonify({"success": False, "message": "Invalid passcode."})
 
 
+
 @app.route('/student_live')
 def student_live_room():
+    if 'student_auth' not in session:
+        return redirect(url_for('student_join_page'))
     if 'student_auth' not in session:
         return redirect(url_for('student_join_page'))
     return render_template('student.html')
@@ -107,8 +128,7 @@ def emit_live_summary():
             "confusion": 0,
             "emotion_counts": {"engaged": 0, "neutral": 0, "confused": 0, "distracted": 0},
             "attention_list": [],
-            "active_alerts": 0,
-            "sustained_students": []
+            "active_alerts": 0
         }
     else:
         emotions = {"engaged": 0, "neutral": 0, "confused": 0, "distracted": 0}
@@ -127,19 +147,6 @@ def emit_live_summary():
                     "confused_for_seconds": s.get("confused_for_seconds", 0)
                 })
 
-        sustained_students = sorted(
-            [
-                {
-                    "sid": s["sid"],
-                    "name": s.get("name", "Student"),
-                    "confused_for_seconds": s.get("confused_for_seconds", 0)
-                }
-                for s in students if s.get("sustained_confusion")
-            ],
-            key=lambda item: item["confused_for_seconds"],
-            reverse=True
-        )
-
         summary = {
             "online": len(students),
             "engagement": round(sum(s.get("engagement", 0) for s in students) / len(students)),
@@ -150,8 +157,7 @@ def emit_live_summary():
                 key=lambda item: item["confusion"],
                 reverse=True
             )[:6],
-            "active_alerts": len(sustained_students),
-            "sustained_students": sustained_students
+            "active_alerts": len([s for s in students if s.get("sustained_confusion")])
         }
 
     emit('class_summary', summary, to=CLASSROOM_ROOM)
@@ -168,8 +174,6 @@ def handle_join(data):
     if role == 'teacher':
         teacher_sid = request.sid
         emit('teacher_ready', {"sid": request.sid}, to=CLASSROOM_ROOM, include_self=False)
-        for student in live_students.values():
-            emit('new_student', student, to=teacher_sid)
         emit_live_summary()
         return
 
@@ -192,6 +196,7 @@ def handle_join(data):
 @socketio.on('signal')
 def handle_signal(data):
     emit('signal', {"sid": request.sid, "signal": data['signal']}, to=data['to'])
+
 
 
 @socketio.on('update_metrics')
@@ -248,9 +253,6 @@ def handle_metrics(data):
 
 @socketio.on('contact_student')
 def handle_contact_student(data):
-    if request.sid != teacher_sid:
-        return
-
     target_sid = data.get('target_sid')
     if not target_sid or target_sid not in live_students:
         return
@@ -276,3 +278,4 @@ def handle_disconnect():
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+
