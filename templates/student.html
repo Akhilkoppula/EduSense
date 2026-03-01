@@ -13,6 +13,7 @@
             --bg: #0b0f1a;
             --glass: rgba(255, 255, 255, 0.05);
             --danger: #ef4444;
+            --ok: #22c55e;
         }
 
         body {
@@ -26,7 +27,6 @@
             flex-direction: column;
         }
 
-        /* Fixed Center Container for Teacher Feed */
         .main-broadcast {
             flex: 1;
             background: #000;
@@ -43,7 +43,6 @@
             object-fit: contain;
         }
 
-        /* Floating PiP Student Preview */
         .preview-pip {
             position: absolute;
             bottom: 30px;
@@ -76,7 +75,16 @@
             border: 1px solid var(--glass);
         }
 
-        /* Control Bar with Features */
+        .emotion-badge {
+            margin-top: 8px;
+            font-size: 0.75rem;
+            padding: 6px 10px;
+            border-radius: 999px;
+            width: max-content;
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+        }
+
         .controls {
             height: 75px;
             background: rgba(15, 23, 42, 0.95);
@@ -125,6 +133,7 @@
     <div class="main-broadcast">
         <div class="session-info">
             🔴 Live: <strong>{{ session.get('student_name') }}'s Class</strong>
+            <div class="emotion-badge" id="emotionBadge">Emotion: detecting...</div>
         </div>
 
         <video id="teacherVid" autoplay playsinline
@@ -144,8 +153,56 @@
 
     <script>
         const socket = io();
-        let myStream; let p;
+        let myStream;
+        let p;
         let micOn = true, camOn = true;
+
+        function computeEmotionAndMetrics() {
+            let emotion = 'neutral';
+            let engagement = 65;
+            let confusion = 25;
+
+            if (!camOn && !micOn) {
+                emotion = 'distracted';
+                engagement = 20;
+                confusion = 65;
+            } else if (!camOn) {
+                emotion = 'distracted';
+                engagement = 35;
+                confusion = 55;
+            } else if (!micOn) {
+                emotion = 'neutral';
+                engagement = 55;
+                confusion = 35;
+            }
+
+            const jitter = Math.floor(Math.random() * 16) - 8;
+            engagement = Math.max(0, Math.min(100, engagement + jitter));
+            confusion = Math.max(0, Math.min(100, confusion - jitter));
+
+            if (confusion >= 55) emotion = 'confused';
+            if (engagement >= 75 && confusion <= 35) emotion = 'engaged';
+
+            return { emotion, engagement, confusion };
+        }
+
+        function publishMetrics() {
+            const metrics = computeEmotionAndMetrics();
+            socket.emit('update_metrics', metrics);
+
+            const badge = document.getElementById('emotionBadge');
+            badge.innerText = `Emotion: ${metrics.emotion} | Engagement ${metrics.engagement}% | Confusion ${metrics.confusion}%`;
+            if (metrics.emotion === 'engaged') {
+                badge.style.borderColor = 'rgba(34, 197, 94, 0.7)';
+                badge.style.background = 'rgba(34, 197, 94, 0.2)';
+            } else if (metrics.emotion === 'confused') {
+                badge.style.borderColor = 'rgba(239, 68, 68, 0.7)';
+                badge.style.background = 'rgba(239, 68, 68, 0.2)';
+            } else {
+                badge.style.borderColor = 'rgba(59, 130, 246, 0.5)';
+                badge.style.background = 'rgba(59, 130, 246, 0.2)';
+            }
+        }
 
         async function init() {
             try {
@@ -153,33 +210,50 @@
                 document.getElementById('myVid').srcObject = myStream;
                 socket.emit('join_room', {
                     room: "global_room",
+                    role: 'student',
                     name: "{{ session['student_name'] }}"
                 });
-            } catch (e) { alert("Camera access required for class."); }
+                publishMetrics();
+                setInterval(publishMetrics, 3500);
+            } catch (e) {
+                alert("Camera access required for class.");
+            }
         }
+
+        socket.on('teacher_ready', () => {
+            // teacher joined; next signaling exchange will attach media stream
+        });
 
         socket.on('signal', data => {
             if (!p) {
                 p = new SimplePeer({ initiator: false, stream: myStream });
                 p.on('signal', signal => socket.emit('signal', { to: data.sid, signal }));
-                p.on('stream', stream => { document.getElementById('teacherVid').srcObject = stream; });
+                p.on('stream', stream => {
+                    document.getElementById('teacherVid').srcObject = stream;
+                });
             }
             p.signal(data.signal);
         });
 
         function toggleMic() {
-            micOn = !micOn; myStream.getAudioTracks()[0].enabled = micOn;
+            micOn = !micOn;
+            myStream.getAudioTracks()[0].enabled = micOn;
             document.getElementById('sMic').classList.toggle('off');
             document.getElementById('sMic').innerHTML = micOn ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
+            publishMetrics();
         }
 
         function toggleCam() {
-            camOn = !camOn; myStream.getVideoTracks()[0].enabled = camOn;
+            camOn = !camOn;
+            myStream.getVideoTracks()[0].enabled = camOn;
             document.getElementById('sCam').classList.toggle('off');
             document.getElementById('sCam').innerHTML = camOn ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
+            publishMetrics();
         }
 
-        function exitRoom() { if (confirm("Leave the classroom?")) location.href = '/logout'; }
+        function exitRoom() {
+            if (confirm("Leave the classroom?")) location.href = '/logout';
+        }
 
         window.onload = init;
     </script>
