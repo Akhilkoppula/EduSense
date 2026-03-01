@@ -279,11 +279,8 @@
                     name: "{{ session['student_name'] }}"
                 });
                 publishMetrics();
-<<<<<<< HEAD
-                publishTimer = setInterval(publishMetrics, 2000);
-=======
                 setInterval(publishMetrics, 3500);
->>>>>>> origin/main
+
             } catch (e) {
                 alert("Camera access required for class.");
             }
@@ -305,10 +302,7 @@
         });
 
         function toggleMic() {
-<<<<<<< HEAD
-            if (!myStream || !myStream.getAudioTracks().length) return;
-=======
->>>>>>> origin/main
+
             micOn = !micOn;
             myStream.getAudioTracks()[0].enabled = micOn;
             document.getElementById('sMic').classList.toggle('off');
@@ -317,10 +311,7 @@
         }
 
         function toggleCam() {
-<<<<<<< HEAD
-            if (!myStream || !myStream.getVideoTracks().length) return;
-=======
->>>>>>> origin/main
+
             camOn = !camOn;
             myStream.getVideoTracks()[0].enabled = camOn;
             document.getElementById('sCam').classList.toggle('off');
@@ -329,20 +320,9 @@
         }
 
         function exitRoom() {
-<<<<<<< HEAD
-            if (publishTimer) {
-                clearInterval(publishTimer);
-            }
             if (confirm("Leave the classroom?")) location.href = '/logout';
         }
 
-        socket.on('teacher_message', data => {
-            alert(`Message from ${data.teacher}: ${data.message}`);
-        });
-=======
-            if (confirm("Leave the classroom?")) location.href = '/logout';
-        }
->>>>>>> origin/main
 
         window.onload = init;
     </script>

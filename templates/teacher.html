@@ -38,6 +38,26 @@
             min-height: 0;
         }
 
+        @media (max-width: 1100px) {
+            body {
+                overflow: auto;
+            }
+
+            .workspace {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+                min-height: unset;
+            }
+
+            .analysis-panel {
+                grid-row: auto;
+            }
+
+            .student-grid {
+                max-height: 320px;
+            }
+        }
+
         .analysis-panel {
             grid-row: span 2;
         }
@@ -101,29 +121,47 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-<<<<<<< HEAD
-            min-height: 110px;
-=======
->>>>>>> origin/main
         }
 
         .attention-item {
             display: flex;
             justify-content: space-between;
-<<<<<<< HEAD
-            align-items: center;
-            gap: 8px;
-            font-size: 0.75rem;
-=======
             font-size: 0.78rem;
->>>>>>> origin/main
             background: rgba(239, 68, 68, 0.14);
             border: 1px solid rgba(239, 68, 68, 0.4);
             border-radius: 6px;
             padding: 7px 9px;
         }
 
-<<<<<<< HEAD
+        .control-bar {
+            height: 70px;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .attention-list {
+            flex: 1;
+            overflow: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 110px;
+        }
+
+        .attention-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            background: rgba(239, 68, 68, 0.14);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 6px;
+            padding: 7px 9px;
+        }
+
         .attention-item button {
             border: 1px solid rgba(59, 130, 246, 0.7);
             background: rgba(59, 130, 246, 0.2);
@@ -132,6 +170,12 @@
             cursor: pointer;
             padding: 5px 8px;
             font-size: 0.7rem;
+        }
+
+        .attention-item div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .student-gallery-wrap {
@@ -148,47 +192,6 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
-        .student-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 8px;
-            padding: 0 10px 10px;
-            overflow-y: auto;
-            min-height: 0;
-        }
-
-        .grid-slot {
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            background: #000;
-            overflow: hidden;
-            position: relative;
-            min-height: 130px;
-            border-radius: 8px;
-        }
-
-        .grid-tag {
-            position: absolute;
-            left: 8px;
-            bottom: 8px;
-            background: rgba(0, 0, 0, 0.65);
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 0.7rem;
-            z-index: 20;
-        }
-
-=======
->>>>>>> origin/main
-        .control-bar {
-            height: 70px;
-            background: rgba(15, 23, 42, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
         .btn-ctrl {
             width: 45px;
             height: 45px;
@@ -201,20 +204,6 @@
             transition: 0.2s;
         }
 
-<<<<<<< HEAD
-        .btn-ctrl.off {
-            background: var(--danger);
-        }
-
-        .teacher-alert {
-            margin: 0 10px 10px;
-            padding: 8px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            border: 1px solid rgba(239, 68, 68, 0.45);
-            background: rgba(239, 68, 68, 0.16);
-            display: none;
-=======
         .grid-slot {
             border: 1px solid rgba(255, 255, 255, 0.05);
             background: #000;
@@ -231,7 +220,6 @@
             border-radius: 6px;
             font-size: 0.7rem;
             z-index: 20;
->>>>>>> origin/main
         }
     </style>
 </head>
@@ -241,17 +229,14 @@
         <div class="panel analysis-panel">
             <div class="panel-header">LIVE ENGAGEMENT & CONFUSION TRACKER</div>
             <div style="flex: 1; padding: 10px;"><canvas id="liveChart"></canvas></div>
-<<<<<<< HEAD
             <div class="session-stats">
                 <span>ONLINE: <span id="onlineCount">0</span></span>
                 <span>ACTIVE ALERTS: <span id="activeAlerts">0</span></span>
                 <span id="alertBox">ALERT: NORMAL</span>
             </div>
             <div class="teacher-alert" id="teacherAlert"></div>
-=======
             <div class="session-stats"><span>ONLINE: <span id="onlineCount">0</span></span><span id="alertBox">ALERT:
-                    NORMAL</span></div>
->>>>>>> origin/main
+                    NORMAL</span></div
             <div class="emotion-counters">
                 <div class="emotion-pill"><span>Engaged</span><strong id="engagedCount">0</strong></div>
                 <div class="emotion-pill"><span>Neutral</span><strong id="neutralCount">0</strong></div>
@@ -266,28 +251,17 @@
         <div class="panel">
             <div class="panel-header">STUDENTS REQUIRING ATTENTION</div>
             <div class="attention-list" id="attentionList"></div>
-<<<<<<< HEAD
-            <div class="student-gallery-wrap">
-                <div class="gallery-header">STUDENT GALLERY (SCROLL TO VIEW ALL)</div>
-                <div class="student-grid" id="studentGallery"></div>
-=======
             <div class="student-grid" id="studentGallery">
                 <div class="grid-slot"></div>
                 <div class="grid-slot"></div>
                 <div class="grid-slot"></div>
                 <div class="grid-slot"></div>
->>>>>>> origin/main
             </div>
         </div>
     </div>
     <div class="control-bar">
-<<<<<<< HEAD
-        <button class="btn-ctrl" id="tMic"><i class="fas fa-microphone"></i></button>
-        <button class="btn-ctrl" id="tCam"><i class="fas fa-video"></i></button>
-=======
         <button class="btn-ctrl"><i class="fas fa-microphone"></i></button>
         <button class="btn-ctrl"><i class="fas fa-video"></i></button>
->>>>>>> origin/main
         <button
             style="background:var(--danger); border:none; color:white; padding:10px 20px; border-radius:8px; cursor:pointer;"
             onclick="location.href='/teacher_console'">End Session</button>
@@ -296,13 +270,6 @@
         const socket = io();
         let myStream;
         const peers = {};
-<<<<<<< HEAD
-        const slots = {};
-        let tMicOn = true;
-        let tCamOn = true;
-=======
->>>>>>> origin/main
-
         const ctx = document.getElementById('liveChart').getContext('2d');
         const liveChart = new Chart(ctx, {
             type: 'line',
@@ -365,11 +332,7 @@
         async function init() {
             myStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             document.getElementById('tVideo').srcObject = myStream;
-<<<<<<< HEAD
-            socket.emit('join_room', { room: 'global_room', role: 'teacher', name: 'Teacher' });
-=======
-            socket.emit('join_room', { room: "global_room", role: 'teacher', name: "Teacher" });
->>>>>>> origin/main
+            socket.emit('join_room', { room: "global_room", role: 'teacher', name: "Teacher" })
         }
 
         socket.on('new_student', data => {
@@ -377,7 +340,6 @@
             const peer = new SimplePeer({ initiator: true, stream: myStream });
             peer.on('signal', signal => socket.emit('signal', { to: data.sid, signal }));
             peer.on('stream', stream => {
-<<<<<<< HEAD
                 const slot = addStudentSlot(data.sid, data.name);
                 let vid = slot.querySelector('video');
                 if (!vid) {
@@ -387,7 +349,6 @@
                     slot.prepend(vid);
                 }
                 vid.srcObject = stream;
-=======
                 const slot = [...document.querySelectorAll('.grid-slot')].find(s => !s.hasChildNodes());
                 if (!slot) return;
                 const vid = document.createElement('video');
@@ -398,43 +359,35 @@
                 tag.innerText = data.name || 'Student';
                 slot.appendChild(vid);
                 slot.appendChild(tag);
->>>>>>> origin/main
             });
             peers[data.sid] = peer;
         });
 
         socket.on('student_left', data => {
-<<<<<<< HEAD
             if (peers[data.sid]) {
                 peers[data.sid].destroy();
                 delete peers[data.sid];
             }
             removeStudentSlot(data.sid);
-=======
             if (!peers[data.sid]) return;
             peers[data.sid].destroy();
             delete peers[data.sid];
->>>>>>> origin/main
         });
 
         socket.on('signal', data => {
             if (peers[data.sid]) peers[data.sid].signal(data.signal);
         });
-<<<<<<< HEAD
-
         socket.on('confusion_alert', data => {
             showTeacherAlert(`🚨 ${data.message}`);
             const alertBox = document.getElementById('alertBox');
             alertBox.innerText = `ALERT: ${data.name} confused > 1 min`;
             alertBox.style.color = '#fbbf24';
         });
-
         socket.on('metrics_received', data => {
             if (data.emotion === 'confused') {
                 pushChartPoint(data.engagement, Math.min(100, data.confusion + 10));
             } else {
                 pushChartPoint(data.engagement, data.confusion);
-=======
 
         socket.on('metrics_received', data => {
             liveChart.data.datasets[0].data.shift();
@@ -486,7 +439,6 @@
             } else {
                 alertBox.innerText = 'ALERT: NORMAL';
                 alertBox.style.color = 'white';
->>>>>>> origin/main
             }
         });
 
