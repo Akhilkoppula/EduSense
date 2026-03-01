@@ -121,6 +121,32 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+        }
+
+        .attention-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            background: rgba(239, 68, 68, 0.14);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 6px;
+            padding: 7px 9px;
+        }
+
+        .control-bar {
+            height: 70px;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .attention-list {
+            flex: 1;
+            overflow: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
             min-height: 110px;
         }
 
@@ -166,45 +192,6 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
-        .student-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 8px;
-            padding: 0 10px 10px;
-            overflow-y: auto;
-            min-height: 0;
-        }
-
-        .grid-slot {
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            background: #000;
-            overflow: hidden;
-            position: relative;
-            min-height: 130px;
-            border-radius: 8px;
-        }
-
-        .grid-tag {
-            position: absolute;
-            left: 8px;
-            bottom: 8px;
-            background: rgba(0, 0, 0, 0.65);
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 0.7rem;
-            z-index: 20;
-        }
-
-        .control-bar {
-            height: 70px;
-            background: rgba(15, 23, 42, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
         .btn-ctrl {
             width: 45px;
             height: 45px;
@@ -217,18 +204,22 @@
             transition: 0.2s;
         }
 
-        .btn-ctrl.off {
-            background: var(--danger);
+        .grid-slot {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: #000;
+            overflow: hidden;
+            position: relative;
         }
 
-        .teacher-alert {
-            margin: 0 10px 10px;
-            padding: 8px;
+        .grid-tag {
+            position: absolute;
+            left: 8px;
+            bottom: 8px;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 4px 8px;
             border-radius: 6px;
-            font-size: 0.75rem;
-            border: 1px solid rgba(239, 68, 68, 0.45);
-            background: rgba(239, 68, 68, 0.16);
-            display: none;
+            font-size: 0.7rem;
+            z-index: 20;
         }
     </style>
 </head>
@@ -244,6 +235,8 @@
                 <span id="alertBox">ALERT: NORMAL</span>
             </div>
             <div class="teacher-alert" id="teacherAlert"></div>
+            <div class="session-stats"><span>ONLINE: <span id="onlineCount">0</span></span><span id="alertBox">ALERT:
+                    NORMAL</span></div
             <div class="emotion-counters">
                 <div class="emotion-pill"><span>Engaged</span><strong id="engagedCount">0</strong></div>
                 <div class="emotion-pill"><span>Neutral</span><strong id="neutralCount">0</strong></div>
@@ -258,15 +251,17 @@
         <div class="panel">
             <div class="panel-header">STUDENTS REQUIRING ATTENTION</div>
             <div class="attention-list" id="attentionList"></div>
-            <div class="student-gallery-wrap">
-                <div class="gallery-header">STUDENT GALLERY (SCROLL TO VIEW ALL)</div>
-                <div class="student-grid" id="studentGallery"></div>
+            <div class="student-grid" id="studentGallery">
+                <div class="grid-slot"></div>
+                <div class="grid-slot"></div>
+                <div class="grid-slot"></div>
+                <div class="grid-slot"></div>
             </div>
         </div>
     </div>
     <div class="control-bar">
-        <button class="btn-ctrl" id="tMic"><i class="fas fa-microphone"></i></button>
-        <button class="btn-ctrl" id="tCam"><i class="fas fa-video"></i></button>
+        <button class="btn-ctrl"><i class="fas fa-microphone"></i></button>
+        <button class="btn-ctrl"><i class="fas fa-video"></i></button>
         <button
             style="background:var(--danger); border:none; color:white; padding:10px 20px; border-radius:8px; cursor:pointer;"
             onclick="location.href='/teacher_console'">End Session</button>
@@ -275,10 +270,6 @@
         const socket = io();
         let myStream;
         const peers = {};
-        const slots = {};
-        let tMicOn = true;
-        let tCamOn = true;
-
         const ctx = document.getElementById('liveChart').getContext('2d');
         const liveChart = new Chart(ctx, {
             type: 'line',
@@ -339,23 +330,14 @@
         }
 
         async function init() {
-            try {
-                myStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('tVideo').srcObject = myStream;
-            } catch (error) {
-                showTeacherAlert('Camera or microphone access was denied. Live media will be unavailable, but metrics will continue.');
-            }
-
-            socket.emit('join_room', { room: 'global_room', role: 'teacher', name: 'Teacher' });
+            myStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('tVideo').srcObject = myStream;
+            socket.emit('join_room', { room: "global_room", role: 'teacher', name: "Teacher" })
         }
 
         socket.on('new_student', data => {
             addStudentSlot(data.sid, data.name);
-            const peerConfig = { initiator: true };
-            if (myStream) {
-                peerConfig.stream = myStream;
-            }
-            const peer = new SimplePeer(peerConfig);
+            const peer = new SimplePeer({ initiator: true, stream: myStream });
             peer.on('signal', signal => socket.emit('signal', { to: data.sid, signal }));
             peer.on('stream', stream => {
                 const slot = addStudentSlot(data.sid, data.name);
@@ -367,6 +349,16 @@
                     slot.prepend(vid);
                 }
                 vid.srcObject = stream;
+                const slot = [...document.querySelectorAll('.grid-slot')].find(s => !s.hasChildNodes());
+                if (!slot) return;
+                const vid = document.createElement('video');
+                vid.srcObject = stream;
+                vid.autoplay = true;
+                const tag = document.createElement('div');
+                tag.className = 'grid-tag';
+                tag.innerText = data.name || 'Student';
+                slot.appendChild(vid);
+                slot.appendChild(tag);
             });
             peers[data.sid] = peer;
         });
@@ -377,24 +369,76 @@
                 delete peers[data.sid];
             }
             removeStudentSlot(data.sid);
+            if (!peers[data.sid]) return;
+            peers[data.sid].destroy();
+            delete peers[data.sid];
         });
 
         socket.on('signal', data => {
             if (peers[data.sid]) peers[data.sid].signal(data.signal);
         });
-
         socket.on('confusion_alert', data => {
             showTeacherAlert(`🚨 ${data.message}`);
             const alertBox = document.getElementById('alertBox');
             alertBox.innerText = `ALERT: ${data.name} confused > 1 min`;
             alertBox.style.color = '#fbbf24';
         });
-
         socket.on('metrics_received', data => {
             if (data.emotion === 'confused') {
                 pushChartPoint(data.engagement, Math.min(100, data.confusion + 10));
             } else {
                 pushChartPoint(data.engagement, data.confusion);
+
+        socket.on('metrics_received', data => {
+            liveChart.data.datasets[0].data.shift();
+            liveChart.data.datasets[0].data.push(data.engagement);
+            liveChart.data.datasets[1].data.shift();
+            liveChart.data.datasets[1].data.push(data.confusion);
+            liveChart.update('none');
+
+            const alertBox = document.getElementById('alertBox');
+            if (data.confusion > 50) {
+                alertBox.innerText = `ALERT: ${data.name} needs help`;
+                alertBox.style.color = 'orange';
+            }
+        });
+
+        socket.on('class_summary', summary => {
+            document.getElementById('onlineCount').innerText = summary.online;
+            document.getElementById('engagedCount').innerText = summary.emotion_counts.engaged || 0;
+            document.getElementById('neutralCount').innerText = summary.emotion_counts.neutral || 0;
+            document.getElementById('confusedCount').innerText = summary.emotion_counts.confused || 0;
+            document.getElementById('distractedCount').innerText = summary.emotion_counts.distracted || 0;
+
+            const attention = document.getElementById('attentionList');
+            attention.innerHTML = '';
+            if (!summary.attention_list.length) {
+                const row = document.createElement('div');
+                row.className = 'attention-item';
+                row.innerHTML = '<span>No active alerts</span><span>✅</span>';
+                attention.appendChild(row);
+            } else {
+                summary.attention_list.forEach(student => {
+                    const row = document.createElement('div');
+                    row.className = 'attention-item';
+                    row.innerHTML = `<span>${student.name} · ${student.emotion}</span><strong>${student.confusion}% confusion</strong>`;
+                    attention.appendChild(row);
+                });
+            }
+
+            liveChart.data.datasets[0].data.shift();
+            liveChart.data.datasets[0].data.push(summary.engagement);
+            liveChart.data.datasets[1].data.shift();
+            liveChart.data.datasets[1].data.push(summary.confusion);
+            liveChart.update('none');
+
+            const alertBox = document.getElementById('alertBox');
+            if (summary.confusion > 50) {
+                alertBox.innerText = 'ALERT: Class confusion is high';
+                alertBox.style.color = 'orange';
+            } else {
+                alertBox.innerText = 'ALERT: NORMAL';
+                alertBox.style.color = 'white';
             }
         });
 
@@ -419,22 +463,9 @@
                     row.className = 'attention-item';
                     const duration = student.confused_for_seconds ? ` · ${student.confused_for_seconds}s` : '';
                     const severity = student.sustained_confusion ? ' 🚨' : '';
-
-                    const info = document.createElement('span');
-                    info.textContent = `${student.name} · ${student.emotion}${duration}${severity}`;
-
-                    const actions = document.createElement('div');
-                    const score = document.createElement('strong');
-                    score.textContent = `${student.confusion}%`;
-
-                    const btn = document.createElement('button');
-                    btn.textContent = 'Contact';
-                    btn.addEventListener('click', () => contactStudent(student.sid, student.name));
-
-                    actions.appendChild(score);
-                    actions.appendChild(btn);
-                    row.appendChild(info);
-                    row.appendChild(actions);
+                    row.innerHTML = `<span>${student.name} · ${student.emotion}${duration}${severity}</span>
+                        <div><strong>${student.confusion}%</strong>
+                        <button onclick="contactStudent('${student.sid}', '${student.name.replace(/'/g, "\\'")}')">Contact</button></div>`;
                     attention.appendChild(row);
                 });
             }
