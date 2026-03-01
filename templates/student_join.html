@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>EduSense | Join Class</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0b0f1a;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: white;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+        }
+
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 24px;
+            width: 350px;
+            text-align: center;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            border: none;
+            padding: 14px;
+            color: white;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1 style="margin-bottom: 5px;">Join Session</h1>
+        <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 25px;">Ready to learn at MLRIT?</p>
+
+        <input type="text" id="name" placeholder="Full Name">
+        <input type="text" id="roll" placeholder="Roll Number (e.g. 21R21A0501)">
+        <input type="text" id="passcode" value="{{ auto_code }}" placeholder="6-Digit Passcode">
+
+        <button class="btn" onclick="joinClass()">Enter Class</button>
+    </div>
+
+    <script>
+        function joinClass() {
+            const data = {
+                name: document.getElementById('name').value,
+                roll: document.getElementById('roll').value,
+                passcode: document.getElementById('passcode').value
+            };
+            if (!data.name || !data.roll || !data.passcode) return alert("Fill all fields!");
+
+            fetch('/verify_session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success) window.location.href = res.redirect;
+                    else alert(res.message);
+                });
+        }
+    </script>
+</body>
+
+</html>

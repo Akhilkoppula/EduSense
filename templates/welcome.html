@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>EduSense - Welcome</title>
+    <style>
+        :root { --primary: #3b82f6; --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: radial-gradient(circle at top right, #1e293b, #0f172a); color: white; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .hero { text-align: center; margin-bottom: 50px; }
+        .hero h1 { font-size: 4rem; margin: 0; background: linear-gradient(to right, #60a5fa, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
+        .container { display: flex; gap: 30px; }
+        .role-card { background: var(--card); backdrop-filter: blur(15px); padding: 40px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); width: 300px; text-align: center; text-decoration: none; color: white; transition: 0.3s; }
+        .role-card:hover { transform: translateY(-10px); border-color: var(--primary); }
+        .btn { margin-top: 25px; display: inline-block; padding: 12px 30px; background: var(--primary); border-radius: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="hero"><h1>EduSense</h1><p>AI-Powered Engagement Analytics</p></div>
+    <div class="container">
+        <a href="/teacher_login" class="role-card">
+            <div style="font-size: 4rem;">👨‍🏫</div>
+            <h2>Host / Teacher</h2>
+            <div class="btn">Launch Dashboard</div>
+        </a>
+        <a href="/join" class="role-card">
+            <div style="font-size: 4rem;">🎓</div>
+            <h2>Join as Student</h2>
+            <div class="btn">Join Class</div>
+        </a>
+    </div>
+</body>
+</html>

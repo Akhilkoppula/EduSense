@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>EduSense | Faculty Live</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-peer/9.11.1/simplepeer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --danger: #ef4444;
+            --bg: #0b0f1a;
+            --panel: rgba(255, 255, 255, 0.03);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .workspace {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            grid-template-rows: 1.4fr 0.6fr;
+            gap: 12px;
+            padding: 12px;
+            box-sizing: border-box;
+            min-height: 0;
+        }
+
+        .analysis-panel {
+            grid-row: span 2;
+        }
+
+        .panel {
+            background: var(--panel);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .panel-header {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 12px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .session-stats {
+            background: var(--primary);
+            margin: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-around;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .control-bar {
+            height: 70px;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .student-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            flex: 1;
+        }
+
+        .grid-slot {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: #000;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="workspace">
+        <div class="panel analysis-panel">
+            <div class="panel-header">LIVE ENGAGEMENT & CONFUSION TRACKER</div>
+            <div style="flex: 1; padding: 10px;"><canvas id="liveChart"></canvas></div>
+            <div class="session-stats"><span>ONLINE: <span id="onlineCount">0</span></span><span id="alertBox">ALERT:
+                    NORMAL</span></div>
+        </div>
+        <div class="panel">
+            <div class="panel-header">PROFESSOR (LIVE)</div>
+            <video id="tVideo" autoplay muted playsinline></video>
+        </div>
+        <div class="panel">
+            <div class="panel-header">STUDENTS REQUIRING ATTENTION</div>
+            <div class="student-grid" id="studentGallery">
+                <div class="grid-slot"></div>
+                <div class="grid-slot"></div>
+                <div class="grid-slot"></div>
+                <div class="grid-slot"></div>
+            </div>
+        </div>
+    </div>
+    <div class="control-bar">
+        <button class="btn-ctrl" onclick="toggleMic()"><i class="fas fa-microphone"></i></button>
+        <button class="btn-ctrl" onclick="toggleCam()"><i class="fas fa-video"></i></button>
+        <button
+            style="background:var(--danger); border:none; color:white; padding:10px 20px; border-radius:8px; cursor:pointer;"
+            onclick="location.href='/teacher_console'">End Session</button>
+    </div>
+    <script>
+        const socket = io();
+        let myStream; const peers = {};
+
+        // Chart.js Init
+        const ctx = document.getElementById('liveChart').getContext('2d');
+        const liveChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array(20).fill(''), datasets: [
+                    { label: 'Engagement', data: Array(20).fill(0), borderColor: '#3b82f6', tension: 0.4 },
+                    { label: 'Confusion', data: Array(20).fill(0), borderColor: '#ef4444', tension: 0.4 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+        });
+
+        async function init() {
+            myStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('tVideo').srcObject = myStream;
+            socket.emit('join_room', { room: "global_room", name: "Teacher" });
+        }
+
+        socket.on('new_student', data => {
+            const peer = new SimplePeer({ initiator: true, stream: myStream });
+            peer.on('signal', signal => socket.emit('signal', { to: data.sid, signal }));
+            peer.on('stream', stream => {
+                let slot = [...document.querySelectorAll('.grid-slot')].find(s => !s.hasChildNodes());
+                if (slot) {
+                    let vid = document.createElement('video');
+                    vid.srcObject = stream; vid.autoplay = true; vid.style.width = "100%"; vid.style.height = "100%"; vid.style.objectFit = "cover";
+                    slot.appendChild(vid);
+                }
+            });
+            peers[data.sid] = peer;
+            document.getElementById('onlineCount').innerText = Object.keys(peers).length;
+        });
+
+        socket.on('signal', data => { if (peers[data.sid]) peers[data.sid].signal(data.signal); });
+
+        // Update Graph with Real Student Data
+        socket.on('metrics_received', data => {
+            liveChart.data.datasets[0].data.shift();
+            liveChart.data.datasets[0].data.push(data.engagement);
+            liveChart.data.datasets[1].data.shift();
+            liveChart.data.datasets[1].data.push(data.confusion);
+            liveChart.update('none');
+            if (data.confusion > 50) document.getElementById('alertBox').style.color = 'orange';
+        });
+
+        window.onload = init;
+    </script>
+</body>
+
+</html>

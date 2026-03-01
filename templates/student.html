@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>EduSense | Student Live</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-peer/9.11.1/simplepeer.min.js"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --bg: #0b0f1a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --danger: #ef4444;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Fixed Center Container for Teacher Feed */
+        .main-broadcast {
+            flex: 1;
+            background: #000;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #teacherVid {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Floating PiP Student Preview */
+        .preview-pip {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 220px;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 12px;
+            border: 2px solid var(--primary);
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        #myVid {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .session-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            border: 1px solid var(--glass);
+        }
+
+        /* Control Bar with Features */
+        .controls {
+            height: 75px;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            border-top: 1px solid var(--glass);
+            flex-shrink: 0;
+        }
+
+        .btn-ctrl {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            color: white;
+            background: var(--glass);
+            font-size: 1.1rem;
+            transition: 0.3s;
+        }
+
+        .btn-ctrl.off {
+            background: var(--danger);
+        }
+
+        .btn-exit {
+            background: var(--danger);
+            padding: 0 25px;
+            border-radius: 10px;
+            height: 45px;
+            border: none;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="main-broadcast">
+        <div class="session-info">
+            🔴 Live: <strong>{{ session.get('student_name') }}'s Class</strong>
+        </div>
+
+        <video id="teacherVid" autoplay playsinline
+            poster="https://via.placeholder.com/800x450/000/fff?text=Waiting+for+Teacher..."></video>
+
+        <div class="preview-pip">
+            <video id="myVid" autoplay muted playsinline></video>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-ctrl" id="sMic" onclick="toggleMic()"><i class="fas fa-microphone"></i></button>
+        <button class="btn-ctrl" id="sCam" onclick="toggleCam()"><i class="fas fa-video"></i></button>
+        <div style="width: 30px;"></div>
+        <button class="btn-exit" onclick="exitRoom()"><i class="fas fa-phone-slash"></i> Exit Classroom</button>
+    </div>
+
+    <script>
+        const socket = io();
+        let myStream; let p;
+        let micOn = true, camOn = true;
+
+        async function init() {
+            try {
+                myStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('myVid').srcObject = myStream;
+                socket.emit('join_room', {
+                    room: "global_room",
+                    name: "{{ session['student_name'] }}"
+                });
+            } catch (e) { alert("Camera access required for class."); }
+        }
+
+        socket.on('signal', data => {
+            if (!p) {
+                p = new SimplePeer({ initiator: false, stream: myStream });
+                p.on('signal', signal => socket.emit('signal', { to: data.sid, signal }));
+                p.on('stream', stream => { document.getElementById('teacherVid').srcObject = stream; });
+            }
+            p.signal(data.signal);
+        });
+
+        function toggleMic() {
+            micOn = !micOn; myStream.getAudioTracks()[0].enabled = micOn;
+            document.getElementById('sMic').classList.toggle('off');
+            document.getElementById('sMic').innerHTML = micOn ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
+        }
+
+        function toggleCam() {
+            camOn = !camOn; myStream.getVideoTracks()[0].enabled = camOn;
+            document.getElementById('sCam').classList.toggle('off');
+            document.getElementById('sCam').innerHTML = camOn ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
+        }
+
+        function exitRoom() { if (confirm("Leave the classroom?")) location.href = '/logout'; }
+
+        window.onload = init;
+    </script>
+</body>
+
+</html>

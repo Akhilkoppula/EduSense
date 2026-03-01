@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EduSense | Faculty Console</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { 
+            --primary: #6366f1; --secondary: #a855f7; --bg: #0b0f1a; 
+            --glass: rgba(255, 255, 255, 0.05); --glass-border: rgba(255, 255, 255, 0.1); 
+            --text-dim: #94a3b8; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; 
+        }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Sidebar Navigation */
+        .sidebar { width: 240px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); border-right: 1px solid var(--glass-border); padding: 30px 20px; display: flex; flex-direction: column; }
+        .logo { font-size: 1.4rem; font-weight: 800; background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 40px; }
+        .nav-item { padding: 12px 15px; border-radius: 10px; color: var(--text-dim); text-decoration: none; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; transition: 0.3s; }
+        .nav-item.active { background: var(--glass); color: white; }
+        
+        /* Main Content Area */
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .create-btn { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+        
+        /* Table and Card Styling */
+        .glass-card { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 25px; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { text-align: left; color: var(--text-dim); padding: 15px; border-bottom: 1px solid var(--glass-border); text-transform: uppercase; font-size: 0.75rem; }
+        td { padding: 18px 15px; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        
+        /* Modal & Input Styling */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: #111827; border: 1px solid var(--glass-border); border-radius: 24px; width: 90%; max-width: 500px; padding: 25px; text-align: center; }
+        input[type="date"], input[type="time"] { cursor: pointer; color-scheme: dark; }
+        input { width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 10px; color: white; margin-bottom: 15px; box-sizing: border-box; }
+
+        #toast { visibility: hidden; position: fixed; bottom: 30px; right: 30px; background: var(--success); padding: 15px 30px; border-radius: 12px; font-weight: bold; z-index: 2000; }
+        #toast.show { visibility: visible; animation: slideUp 0.4s; }
+        @keyframes slideUp { from { transform: translateY(50px); } to { transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div id="toast">Details Copied!</div>
+
+    <aside class="sidebar">
+        <div class="logo">EDUSENSE</div>
+        <nav style="flex: 1;">
+            <a href="#" class="nav-item active"><i class="fas fa-columns"></i> Dashboard</a>
+        </nav>
+        <a href="/logout" class="nav-item" style="color: var(--danger);"><i class="fas fa-power-off"></i> Logout</a>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <div>
+                <h1>Welcome, {{ name }}</h1>
+                <p style="color: var(--text-dim);">Monitoring student understanding at MLRIT.</p>
+            </div>
+            <button class="create-btn" onclick="openModal()">+ Schedule New Session</button>
+        </header>
+
+        <section class="glass-card">
+            <h2 style="color: var(--warning); font-size: 1.1rem; margin-top: 0;">Upcoming / Pending Sessions</h2>
+            <table>
+                <thead>
+                    <tr><th>Topic & Action</th><th>Date</th><th>Duration</th><th>Passcode</th><th>Share</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    {% for s in upcoming %}
+                    <tr>
+                        <td>{{ s.topic }} <a href="/teacher_live" style="color: var(--primary); font-weight: bold; text-decoration: none; font-size: 0.8rem; margin-left: 5px;">(Join)</a></td>
+                        <td>{{ s.date }}</td>
+                        <td>{{ s.start_time }} - {{ s.end_time }}</td>
+                        <td style="color: var(--success); font-weight: bold;">{{ s.passcode }}</td>
+                        <td><button onclick="shareSession('{{ s._id }}')" style="background: none; border: none; color: var(--text-dim); cursor: pointer;"><i class="fas fa-share-alt"></i></button></td>
+                        <td><button onclick="finishSession('{{ s._id }}')" style="background: var(--glass); border: 1px solid var(--glass-border); color: white; padding: 6px 12px; border-radius: 8px; cursor: pointer;">Complete</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <section class="glass-card">
+            <h2 style="color: var(--text-dim); font-size: 1.1rem; margin-top: 0;">Recent Sessions (History)</h2>
+            <table>
+                <thead>
+                    <tr><th>Topic (Click for Analysis)</th><th>Date</th><th>Timings</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    {% for s in recent %}
+                    <tr>
+                        <td><span style="color: var(--primary); cursor: pointer; text-decoration: underline;" onclick="viewAnalysis('{{ s._id }}')">{{ s.topic }}</span></td>
+                        <td>{{ s.date }}</td>
+                        <td>{{ s.start_time }} - {{ s.end_time }}</td>
+                        <td><span style="color: var(--success);">✔ Completed</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <div id="analysis-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="ana-topic">Analysis</h2>
+            <div style="display: flex; justify-content: space-around; margin: 15px 0;">
+                <div><small style="color: var(--success);">ENGAGEMENT</small><h3 id="ana-engage" style="margin:5px 0;">0%</h3></div>
+                <div><small style="color: var(--primary);">UNDERSTANDING</small><h3 id="ana-understand" style="margin:5px 0;">0%</h3></div>
+            </div>
+            <div style="height: 200px;"><canvas id="analysisChart"></canvas></div>
+            <button class="create-btn" style="width: 100%; margin-top: 15px;" onclick="document.getElementById('analysis-modal').style.display='none'">Dismiss</button>
+        </div>
+    </div>
+
+    <div id="modal" class="modal-overlay">
+        <div class="modal-content" style="text-align: left;">
+            <h3 style="color: var(--primary); margin-top: 0;">Schedule Session</h3>
+            <label style="font-size: 0.8rem; color: var(--text-dim);">TOPIC NAME</label>
+            <input type="text" id="topic" placeholder="e.g. OOPS Fundamentals">
+            
+            <label style="font-size: 0.8rem; color: var(--text-dim);">DATE</label>
+            <input type="date" id="date">
+            
+            <div style="display: flex; gap: 15px;">
+                <div style="flex:1;"><label style="font-size:0.8rem; color:var(--text-dim);">START TIME</label><input type="time" id="start"></div>
+                <div style="flex:1;"><label style="font-size:0.8rem; color:var(--text-dim);">END TIME</label><input type="time" id="end"></div>
+            </div>
+            
+            <button class="create-btn" style="width: 100%; margin-top: 10px;" onclick="submitSession()">Create Classroom</button>
+            <p onclick="closeModal()" style="text-align: center; color: var(--danger); cursor: pointer; margin-top: 15px; font-weight: bold;">Cancel</p>
+        </div>
+    </div>
+
+    <script>
+        let myChart = null;
+        function openModal() { document.getElementById('modal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+        // Fetch session data for sharing
+        function shareSession(id) {
+            fetch(`/get_session_details/${id}`).then(res => res.json()).then(data => {
+                const text = `🎓 *EduSense Invitation*\n📌 Topic: ${data.topic}\n👤 Faculty: ${data.faculty}\n📅 Date: ${data.date}\n⏰ Time: ${data.start}-${data.end}\n🔑 Code: ${data.passcode}\n🔗 Link: ${data.link}`;
+                navigator.clipboard.writeText(text).then(() => {
+                    const t = document.getElementById("toast"); t.className = "show";
+                    setTimeout(() => { t.className = ""; }, 3000);
+                });
+            });
+        }
+
+        // Fetch analysis data for Chart.js
+        function viewAnalysis(id) {
+            fetch(`/get_session_analysis/${id}`).then(res => res.json()).then(data => {
+                document.getElementById('ana-topic').innerText = data.topic;
+                document.getElementById('ana-engage').innerText = `${data.engagement}%`;
+                document.getElementById('ana-understand').innerText = `${data.understanding}%`;
+                document.getElementById('analysis-modal').style.display = 'flex';
+                renderGraph(data.engagement, data.understanding);
+            });
+        }
+
+        function renderGraph(e, u) {
+            const ctx = document.getElementById('analysisChart').getContext('2d');
+            if(myChart) myChart.destroy();
+            myChart = new Chart(ctx, { 
+                type: 'bar', 
+                data: { labels: ['Engagement', 'Understanding'], datasets: [{ data: [e, u], backgroundColor: ['#10b981', '#6366f1'], borderRadius: 10 }] }, 
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: { display: false } } } 
+            });
+        }
+
+        function submitSession() {
+            const d = { 
+                topic: document.getElementById('topic').value, 
+                date: document.getElementById('date').value, 
+                start_time: document.getElementById('start').value, 
+                end_time: document.getElementById('end').value 
+            };
+            if(!d.topic || !d.date || !d.start_time) return alert("Please set a topic, date, and start time.");
+            fetch('/create_session', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(d) }).then(() => location.reload());
+        }
+
+        function finishSession(id) { 
+            if(confirm("Mark session as completed?")) {
+                fetch(`/complete_session/${id}`, { method: 'POST' }).then(() => location.reload()); 
+            }
+        }
+    </script>
+</body>
+</html>

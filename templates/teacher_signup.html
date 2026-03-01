@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><title>Teacher Sign Up</title>
+<style>
+    body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .card { background: rgba(30, 41, 59, 0.7); padding: 40px; border-radius: 20px; border: 1px solid #22c55e; width: 350px; text-align: center; }
+    input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: white; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; }
+</style>
+</head>
+<body>
+    <div class="card">
+        <h2>Register Faculty</h2>
+        <form method="POST">
+            <input type="text" name="reg_name" placeholder="Full Name" required>
+            <input type="email" name="reg_email" placeholder="Email" required>
+            <input type="password" name="reg_password" placeholder="Password" required>
+            <button type="submit">Create Account</button>
+        </form>
+    </div>
+</body>
+</html>
