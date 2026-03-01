@@ -101,21 +101,29 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+<<<<<<< HEAD
             min-height: 110px;
+=======
+>>>>>>> origin/main
         }
 
         .attention-item {
             display: flex;
             justify-content: space-between;
+<<<<<<< HEAD
             align-items: center;
             gap: 8px;
             font-size: 0.75rem;
+=======
+            font-size: 0.78rem;
+>>>>>>> origin/main
             background: rgba(239, 68, 68, 0.14);
             border: 1px solid rgba(239, 68, 68, 0.4);
             border-radius: 6px;
             padding: 7px 9px;
         }
 
+<<<<<<< HEAD
         .attention-item button {
             border: 1px solid rgba(59, 130, 246, 0.7);
             background: rgba(59, 130, 246, 0.2);
@@ -169,6 +177,8 @@
             z-index: 20;
         }
 
+=======
+>>>>>>> origin/main
         .control-bar {
             height: 70px;
             background: rgba(15, 23, 42, 0.95);
@@ -191,6 +201,7 @@
             transition: 0.2s;
         }
 
+<<<<<<< HEAD
         .btn-ctrl.off {
             background: var(--danger);
         }
@@ -203,6 +214,24 @@
             border: 1px solid rgba(239, 68, 68, 0.45);
             background: rgba(239, 68, 68, 0.16);
             display: none;
+=======
+        .grid-slot {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: #000;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .grid-tag {
+            position: absolute;
+            left: 8px;
+            bottom: 8px;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            z-index: 20;
+>>>>>>> origin/main
         }
     </style>
 </head>
@@ -212,12 +241,17 @@
         <div class="panel analysis-panel">
             <div class="panel-header">LIVE ENGAGEMENT & CONFUSION TRACKER</div>
             <div style="flex: 1; padding: 10px;"><canvas id="liveChart"></canvas></div>
+<<<<<<< HEAD
             <div class="session-stats">
                 <span>ONLINE: <span id="onlineCount">0</span></span>
                 <span>ACTIVE ALERTS: <span id="activeAlerts">0</span></span>
                 <span id="alertBox">ALERT: NORMAL</span>
             </div>
             <div class="teacher-alert" id="teacherAlert"></div>
+=======
+            <div class="session-stats"><span>ONLINE: <span id="onlineCount">0</span></span><span id="alertBox">ALERT:
+                    NORMAL</span></div>
+>>>>>>> origin/main
             <div class="emotion-counters">
                 <div class="emotion-pill"><span>Engaged</span><strong id="engagedCount">0</strong></div>
                 <div class="emotion-pill"><span>Neutral</span><strong id="neutralCount">0</strong></div>
@@ -232,15 +266,28 @@
         <div class="panel">
             <div class="panel-header">STUDENTS REQUIRING ATTENTION</div>
             <div class="attention-list" id="attentionList"></div>
+<<<<<<< HEAD
             <div class="student-gallery-wrap">
                 <div class="gallery-header">STUDENT GALLERY (SCROLL TO VIEW ALL)</div>
                 <div class="student-grid" id="studentGallery"></div>
+=======
+            <div class="student-grid" id="studentGallery">
+                <div class="grid-slot"></div>
+                <div class="grid-slot"></div>
+                <div class="grid-slot"></div>
+                <div class="grid-slot"></div>
+>>>>>>> origin/main
             </div>
         </div>
     </div>
     <div class="control-bar">
+<<<<<<< HEAD
         <button class="btn-ctrl" id="tMic"><i class="fas fa-microphone"></i></button>
         <button class="btn-ctrl" id="tCam"><i class="fas fa-video"></i></button>
+=======
+        <button class="btn-ctrl"><i class="fas fa-microphone"></i></button>
+        <button class="btn-ctrl"><i class="fas fa-video"></i></button>
+>>>>>>> origin/main
         <button
             style="background:var(--danger); border:none; color:white; padding:10px 20px; border-radius:8px; cursor:pointer;"
             onclick="location.href='/teacher_console'">End Session</button>
@@ -249,9 +296,12 @@
         const socket = io();
         let myStream;
         const peers = {};
+<<<<<<< HEAD
         const slots = {};
         let tMicOn = true;
         let tCamOn = true;
+=======
+>>>>>>> origin/main
 
         const ctx = document.getElementById('liveChart').getContext('2d');
         const liveChart = new Chart(ctx, {
@@ -315,7 +365,11 @@
         async function init() {
             myStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             document.getElementById('tVideo').srcObject = myStream;
+<<<<<<< HEAD
             socket.emit('join_room', { room: 'global_room', role: 'teacher', name: 'Teacher' });
+=======
+            socket.emit('join_room', { room: "global_room", role: 'teacher', name: "Teacher" });
+>>>>>>> origin/main
         }
 
         socket.on('new_student', data => {
@@ -323,6 +377,7 @@
             const peer = new SimplePeer({ initiator: true, stream: myStream });
             peer.on('signal', signal => socket.emit('signal', { to: data.sid, signal }));
             peer.on('stream', stream => {
+<<<<<<< HEAD
                 const slot = addStudentSlot(data.sid, data.name);
                 let vid = slot.querySelector('video');
                 if (!vid) {
@@ -332,21 +387,40 @@
                     slot.prepend(vid);
                 }
                 vid.srcObject = stream;
+=======
+                const slot = [...document.querySelectorAll('.grid-slot')].find(s => !s.hasChildNodes());
+                if (!slot) return;
+                const vid = document.createElement('video');
+                vid.srcObject = stream;
+                vid.autoplay = true;
+                const tag = document.createElement('div');
+                tag.className = 'grid-tag';
+                tag.innerText = data.name || 'Student';
+                slot.appendChild(vid);
+                slot.appendChild(tag);
+>>>>>>> origin/main
             });
             peers[data.sid] = peer;
         });
 
         socket.on('student_left', data => {
+<<<<<<< HEAD
             if (peers[data.sid]) {
                 peers[data.sid].destroy();
                 delete peers[data.sid];
             }
             removeStudentSlot(data.sid);
+=======
+            if (!peers[data.sid]) return;
+            peers[data.sid].destroy();
+            delete peers[data.sid];
+>>>>>>> origin/main
         });
 
         socket.on('signal', data => {
             if (peers[data.sid]) peers[data.sid].signal(data.signal);
         });
+<<<<<<< HEAD
 
         socket.on('confusion_alert', data => {
             showTeacherAlert(`🚨 ${data.message}`);
@@ -360,6 +434,59 @@
                 pushChartPoint(data.engagement, Math.min(100, data.confusion + 10));
             } else {
                 pushChartPoint(data.engagement, data.confusion);
+=======
+
+        socket.on('metrics_received', data => {
+            liveChart.data.datasets[0].data.shift();
+            liveChart.data.datasets[0].data.push(data.engagement);
+            liveChart.data.datasets[1].data.shift();
+            liveChart.data.datasets[1].data.push(data.confusion);
+            liveChart.update('none');
+
+            const alertBox = document.getElementById('alertBox');
+            if (data.confusion > 50) {
+                alertBox.innerText = `ALERT: ${data.name} needs help`;
+                alertBox.style.color = 'orange';
+            }
+        });
+
+        socket.on('class_summary', summary => {
+            document.getElementById('onlineCount').innerText = summary.online;
+            document.getElementById('engagedCount').innerText = summary.emotion_counts.engaged || 0;
+            document.getElementById('neutralCount').innerText = summary.emotion_counts.neutral || 0;
+            document.getElementById('confusedCount').innerText = summary.emotion_counts.confused || 0;
+            document.getElementById('distractedCount').innerText = summary.emotion_counts.distracted || 0;
+
+            const attention = document.getElementById('attentionList');
+            attention.innerHTML = '';
+            if (!summary.attention_list.length) {
+                const row = document.createElement('div');
+                row.className = 'attention-item';
+                row.innerHTML = '<span>No active alerts</span><span>✅</span>';
+                attention.appendChild(row);
+            } else {
+                summary.attention_list.forEach(student => {
+                    const row = document.createElement('div');
+                    row.className = 'attention-item';
+                    row.innerHTML = `<span>${student.name} · ${student.emotion}</span><strong>${student.confusion}% confusion</strong>`;
+                    attention.appendChild(row);
+                });
+            }
+
+            liveChart.data.datasets[0].data.shift();
+            liveChart.data.datasets[0].data.push(summary.engagement);
+            liveChart.data.datasets[1].data.shift();
+            liveChart.data.datasets[1].data.push(summary.confusion);
+            liveChart.update('none');
+
+            const alertBox = document.getElementById('alertBox');
+            if (summary.confusion > 50) {
+                alertBox.innerText = 'ALERT: Class confusion is high';
+                alertBox.style.color = 'orange';
+            } else {
+                alertBox.innerText = 'ALERT: NORMAL';
+                alertBox.style.color = 'white';
+>>>>>>> origin/main
             }
         });
 
