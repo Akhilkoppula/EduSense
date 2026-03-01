@@ -10,6 +10,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
+            --bg: #0b1220;
+            --panel: #111b2e;
+            --line: rgba(255, 255, 255, 0.14);
             --primary: #3b82f6;
             --danger: #ef4444;
             --success: #22c55e;
@@ -33,14 +36,46 @@
             flex-direction: column;
         }
 
-        .workspace {
+        .quadrant-grid {
             flex: 1;
+            min-height: 0;
             display: grid;
             grid-template-columns: 1.1fr 1fr;
             grid-template-rows: 1.2fr 0.8fr;
             gap: 12px;
             padding: 12px;
-            box-sizing: border-box;
+        }
+
+        .quad {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015));
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .quad-header {
+            padding: 11px 14px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .chart-container {
+            flex: 1;
+            min-height: 0;
+            padding: 10px;
+        }
+
+        .class-summary {
+            padding: 12px;
+            display: grid;
+            grid-template-rows: auto auto auto minmax(0, 1fr);
+            gap: 10px;
             min-height: 0;
             overflow: hidden;
         }
@@ -174,6 +209,7 @@
             grid-template-rows: minmax(200px, 42%) minmax(280px, 58%);
             gap: 14px;
             min-height: 0;
+            font-size: 0.76rem;
         }
 
         .panel-header {
@@ -388,7 +424,47 @@
                 <div class="grid-slot"></div>
                 <div class="grid-slot"></div>
             </div>
-        </div>
+        </section>
+
+        <section class="quad">
+            <div class="quad-header">PROFESSOR SCREEN</div>
+            <div class="video-wrap">
+                <video id="tVideo" autoplay muted playsinline></video>
+            </div>
+        </section>
+
+        <section class="quad">
+            <div class="quad-header">CLASS STATUS & SUSTAINED CONFUSION ALERTS</div>
+            <div class="class-summary">
+                <div class="summary-row">
+                    <div class="summary-card">Students Joined<br><strong id="joinedCount">0</strong></div>
+                    <div class="summary-card">Active 1+ Min Alerts<br><strong id="activeAlerts">0</strong></div>
+                </div>
+
+                <div class="status-badge" id="statusBadge">Status: Normal</div>
+                <div class="teacher-alert" id="teacherAlert"></div>
+
+                <div class="sustained-list-wrap">
+                    <div class="sustained-title">Students Confused For More Than 1 Minute</div>
+                    <ul class="sustained-list" id="sustainedList"></ul>
+                </div>
+
+                <div class="attention-bar">
+                    <div class="attention-chip">Engaged <strong id="engagedCount">0</strong></div>
+                    <div class="attention-chip">Neutral <strong id="neutralCount">0</strong></div>
+                    <div class="attention-chip">Confused <strong id="confusedCount">0</strong></div>
+                    <div class="attention-chip">Distracted <strong id="distractedCount">0</strong></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="quad">
+            <div class="quad-header">STUDENT GALLERY (SCROLLABLE)</div>
+            <div class="gallery-wrap">
+                <div class="gallery-count">Total student tiles: <strong id="galleryCount">0</strong></div>
+                <div class="student-grid" id="studentGallery"></div>
+            </div>
+        </section>
     </div>
 
     <div class="control-bar">
