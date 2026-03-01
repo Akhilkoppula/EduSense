@@ -10,173 +10,504 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
+            --bg: #07132b;
+            --panel: #0b1b3b;
+            --line: rgba(255, 255, 255, 0.14);
             --primary: #3b82f6;
             --danger: #ef4444;
-            --bg: #0b0f1a;
-            --panel: rgba(255, 255, 255, 0.03);
+            --warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
             margin: 0;
             font-family: 'Segoe UI', sans-serif;
             background: var(--bg);
-            color: white;
+            color: #fff;
             height: 100vh;
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-rows: 1fr 50px 1fr 78px;
             overflow: hidden;
         }
 
-        .workspace {
-            flex: 1;
+        .top-grid {
             display: grid;
-            grid-template-columns: 1.2fr 1fr;
-            grid-template-rows: 1.4fr 0.6fr;
-            gap: 12px;
-            padding: 12px;
-            box-sizing: border-box;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 10px 10px 0;
             min-height: 0;
         }
 
-        .analysis-panel {
-            grid-row: span 2;
+        .mid-strip {
+            margin: 0 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.04);
+            display: grid;
+            grid-template-columns: 1fr 1.6fr;
+            align-items: center;
+            padding: 0 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.6fr;
+            gap: 10px;
+            padding: 0 10px 10px;
+            min-height: 0;
         }
 
         .panel {
-            background: var(--panel);
+            border: 1px solid var(--line);
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
             display: flex;
             flex-direction: column;
             min-height: 0;
+            overflow: hidden;
         }
 
         .panel-header {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 5px 12px;
-            font-size: 0.65rem;
-            font-weight: bold;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 10px 12px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--line);
+            background: rgba(0, 0, 0, 0.28);
+        }
+
+        .graph-wrap {
+            flex: 1;
+            padding: 10px;
+            min-height: 0;
+        }
+
+        .graph-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            padding: 0 10px 10px;
+            font-size: 0.78rem;
+        }
+
+        .meta-box {
+            border: 1px solid rgba(59, 130, 246, 0.45);
+            background: rgba(59, 130, 246, 0.16);
+            border-radius: 8px;
+            text-align: center;
+            padding: 6px;
+        }
+
+        .video-wrap {
+            flex: 1;
+            min-height: 0;
+            padding: 10px;
         }
 
         video {
             width: 100%;
             height: 100%;
             object-fit: cover;
-        }
-
-        .session-stats {
-            background: var(--primary);
-            margin: 10px;
-            padding: 10px;
+            border: 1px solid var(--line);
             border-radius: 8px;
-            display: flex;
-            justify-content: space-around;
-            font-weight: bold;
-            font-size: 0.8rem;
+            background: #000;
         }
 
-        .control-bar {
-            height: 70px;
-            background: rgba(15, 23, 42, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .student-grid {
+        .alerts-body {
+            padding: 10px;
+            min-height: 0;
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto minmax(0, 1fr);
+            gap: 10px;
+        }
+
+        .status-badge {
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            background: rgba(59, 130, 246, 0.18);
+            font-size: 0.78rem;
+            text-align: center;
+            padding: 7px 10px;
+            font-weight: 600;
+        }
+
+        .teacher-alert {
+            display: none;
+            border-radius: 8px;
+            border: 1px solid rgba(239, 68, 68, 0.45);
+            background: rgba(239, 68, 68, 0.16);
+            padding: 8px;
+            font-size: 0.76rem;
+        }
+
+        .sustained-list {
+            margin: 0;
+            padding: 10px;
+            list-style: none;
+            border: 1px solid rgba(245, 158, 11, 0.45);
+            background: rgba(245, 158, 11, 0.11);
+            border-radius: 8px;
+            overflow-y: auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.78rem;
+        }
+
+        .sustained-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .gallery-body {
             flex: 1;
+            min-height: 0;
+            padding: 10px;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        .student-row {
+            min-height: 100%;
+            display: flex;
+            gap: 8px;
+            width: max-content;
         }
 
         .grid-slot {
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            background: #000;
+            width: 240px;
+            min-height: 100%;
+            border: 1px solid var(--line);
+            border-radius: 8px;
             overflow: hidden;
+            position: relative;
+            background: #000;
+            flex: 0 0 auto;
+        }
+
+        .grid-tag {
+            position: absolute;
+            left: 8px;
+            bottom: 8px;
+            z-index: 2;
+            padding: 3px 8px;
+            font-size: 0.68rem;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .control-bar {
+            border-top: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0f172a;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .btn-ctrl {
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            color: #fff;
+            font-size: 1.05rem;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-ctrl.off {
+            background: var(--danger);
+        }
+
+        .end-btn {
+            border: none;
+            border-radius: 999px;
+            background: var(--danger);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 11px 18px;
+        }
+
+        @media (max-width: 1180px) {
+            body {
+                grid-template-rows: auto 44px auto 74px;
+                overflow: auto;
+                height: auto;
+            }
+
+            .top-grid,
+            .bottom-grid,
+            .mid-strip {
+                grid-template-columns: 1fr;
+            }
+
+            .grid-slot {
+                width: 210px;
+                min-height: 180px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="workspace">
-        <div class="panel analysis-panel">
-            <div class="panel-header">LIVE ENGAGEMENT & CONFUSION TRACKER</div>
-            <div style="flex: 1; padding: 10px;"><canvas id="liveChart"></canvas></div>
-            <div class="session-stats"><span>ONLINE: <span id="onlineCount">0</span></span><span id="alertBox">ALERT:
-                    NORMAL</span></div>
-        </div>
+    <section class="top-grid">
         <div class="panel">
-            <div class="panel-header">PROFESSOR (LIVE)</div>
-            <video id="tVideo" autoplay muted playsinline></video>
-        </div>
-        <div class="panel">
-            <div class="panel-header">STUDENTS REQUIRING ATTENTION</div>
-            <div class="student-grid" id="studentGallery">
-                <div class="grid-slot"></div>
-                <div class="grid-slot"></div>
-                <div class="grid-slot"></div>
-                <div class="grid-slot"></div>
+            <div class="panel-header">Graph (Student engagement and confusion)</div>
+            <div class="graph-wrap"><canvas id="liveChart"></canvas></div>
+            <div class="graph-meta">
+                <div class="meta-box">Online: <strong id="joinedCount">0</strong></div>
+                <div class="meta-box">Alerts: <strong id="activeAlerts">0</strong></div>
+                <div class="meta-box" id="statusBadge">Status: Normal</div>
             </div>
         </div>
-    </div>
+
+        <div class="panel">
+            <div class="panel-header">Professor live sceen</div>
+            <div class="video-wrap">
+                <video id="tVideo" autoplay muted playsinline></video>
+            </div>
+        </div>
+    </section>
+
+    <section class="mid-strip">
+        <div>Students joined: <span id="joinedCountStrip">0</span></div>
+        <div>student gallery (scroll to see every student)</div>
+    </section>
+
+    <section class="bottom-grid">
+        <div class="panel">
+            <div class="panel-header">Alerts coming space like chatbox</div>
+            <div class="alerts-body">
+                <div class="teacher-alert" id="teacherAlert"></div>
+                <ul class="sustained-list" id="sustainedList"></ul>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">student gallery</div>
+            <div class="gallery-body">
+                <div class="student-row" id="studentGallery"></div>
+            </div>
+        </div>
+    </section>
+
     <div class="control-bar">
-        <button class="btn-ctrl" onclick="toggleMic()"><i class="fas fa-microphone"></i></button>
-        <button class="btn-ctrl" onclick="toggleCam()"><i class="fas fa-video"></i></button>
-        <button
-            style="background:var(--danger); border:none; color:white; padding:10px 20px; border-radius:8px; cursor:pointer;"
-            onclick="location.href='/teacher_console'">End Session</button>
+        <div class="control-group">
+            <button class="btn-ctrl" id="tMic"><i class="fas fa-microphone"></i></button>
+            <button class="btn-ctrl" id="tCam"><i class="fas fa-video"></i></button>
+            <button class="end-btn" onclick="location.href='/teacher_console'">End Session</button>
+        </div>
     </div>
+
     <script>
         const socket = io();
-        let myStream; const peers = {};
+        let myStream;
+        const peers = {};
+        const slots = {};
+        let tMicOn = true;
+        let tCamOn = true;
 
-        // Chart.js Init
         const ctx = document.getElementById('liveChart').getContext('2d');
         const liveChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: Array(20).fill(''), datasets: [
-                    { label: 'Engagement', data: Array(20).fill(0), borderColor: '#3b82f6', tension: 0.4 },
-                    { label: 'Confusion', data: Array(20).fill(0), borderColor: '#ef4444', tension: 0.4 }
+                labels: Array(24).fill(''),
+                datasets: [
+                    { label: 'Engagement', data: Array(24).fill(0), borderColor: '#3b82f6', tension: 0.24 },
+                    { label: 'Confusion', data: Array(24).fill(0), borderColor: '#ef4444', tension: 0.24 }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, max: 100 } },
+                plugins: { legend: { labels: { color: '#dbeafe' } } }
+            }
         });
 
-        async function init() {
-            myStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            document.getElementById('tVideo').srcObject = myStream;
-            socket.emit('join_room', { room: "global_room", name: "Teacher" });
+        function setJoinedCount(count) {
+            document.getElementById('joinedCount').textContent = count;
+            document.getElementById('joinedCountStrip').textContent = count;
         }
 
-        socket.on('new_student', data => {
-            const peer = new SimplePeer({ initiator: true, stream: myStream });
-            peer.on('signal', signal => socket.emit('signal', { to: data.sid, signal }));
+        function addStudentSlot(sid, name) {
+            if (slots[sid]) return slots[sid];
+            const gallery = document.getElementById('studentGallery');
+            const slot = document.createElement('div');
+            slot.className = 'grid-slot';
+            slot.dataset.sid = sid;
+
+            const tag = document.createElement('div');
+            tag.className = 'grid-tag';
+            tag.textContent = name || 'Student';
+            slot.appendChild(tag);
+            gallery.appendChild(slot);
+            slots[sid] = slot;
+            return slot;
+        }
+
+        function removeStudentSlot(sid) {
+            if (!slots[sid]) return;
+            slots[sid].remove();
+            delete slots[sid];
+        }
+
+        function pushChartPoint(engagement, confusion) {
+            liveChart.data.datasets[0].data.shift();
+            liveChart.data.datasets[0].data.push(engagement);
+            liveChart.data.datasets[1].data.shift();
+            liveChart.data.datasets[1].data.push(confusion);
+            liveChart.update('none');
+        }
+
+        function showTeacherAlert(message) {
+            const alertPanel = document.getElementById('teacherAlert');
+            alertPanel.textContent = message;
+            alertPanel.style.display = 'block';
+            setTimeout(() => {
+                alertPanel.style.display = 'none';
+            }, 5000);
+        }
+
+        function ensureTeacherPeer(student) {
+            if (peers[student.sid]) {
+                peers[student.sid].destroy();
+                delete peers[student.sid];
+            }
+
+            addStudentSlot(student.sid, student.name);
+            const peerConfig = { initiator: true, trickle: false };
+            if (myStream) peerConfig.stream = myStream;
+
+            const peer = new SimplePeer(peerConfig);
+            peer.on('signal', signal => socket.emit('signal', { to: student.sid, signal }));
             peer.on('stream', stream => {
-                let slot = [...document.querySelectorAll('.grid-slot')].find(s => !s.hasChildNodes());
-                if (slot) {
-                    let vid = document.createElement('video');
-                    vid.srcObject = stream; vid.autoplay = true; vid.style.width = "100%"; vid.style.height = "100%"; vid.style.objectFit = "cover";
-                    slot.appendChild(vid);
+                const slot = addStudentSlot(student.sid, student.name);
+                let video = slot.querySelector('video');
+                if (!video) {
+                    video = document.createElement('video');
+                    video.autoplay = true;
+                    video.playsInline = true;
+                    slot.prepend(video);
                 }
+                video.srcObject = stream;
             });
-            peers[data.sid] = peer;
-            document.getElementById('onlineCount').innerText = Object.keys(peers).length;
+
+            peer.on('error', () => {
+                showTeacherAlert(`Reconnecting media with ${student.name || 'student'}...`);
+            });
+
+            peers[student.sid] = peer;
+        }
+
+        async function init() {
+            try {
+                myStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('tVideo').srcObject = myStream;
+            } catch (error) {
+                showTeacherAlert('Camera or microphone permission was blocked. Analytics will continue.');
+            }
+
+            socket.emit('join_room', { room: 'global_room', role: 'teacher', name: 'Teacher' });
+        }
+
+        socket.on('new_student', student => ensureTeacherPeer(student));
+
+        socket.on('student_left', data => {
+            if (peers[data.sid]) {
+                peers[data.sid].destroy();
+                delete peers[data.sid];
+            }
+            removeStudentSlot(data.sid);
         });
 
-        socket.on('signal', data => { if (peers[data.sid]) peers[data.sid].signal(data.signal); });
+        socket.on('signal', data => {
+            if (peers[data.sid]) {
+                peers[data.sid].signal(data.signal);
+            }
+        });
 
-        // Update Graph with Real Student Data
-        socket.on('metrics_received', data => {
-            liveChart.data.datasets[0].data.shift();
-            liveChart.data.datasets[0].data.push(data.engagement);
-            liveChart.data.datasets[1].data.shift();
-            liveChart.data.datasets[1].data.push(data.confusion);
-            liveChart.update('none');
-            if (data.confusion > 50) document.getElementById('alertBox').style.color = 'orange';
+        socket.on('confusion_alert', data => {
+            showTeacherAlert(`🚨 ${data.message}`);
+        });
+
+        socket.on('class_summary', summary => {
+            setJoinedCount(summary.online || 0);
+            document.getElementById('activeAlerts').textContent = summary.active_alerts || 0;
+
+            const sustained = document.getElementById('sustainedList');
+            sustained.innerHTML = '';
+            const sustainedStudents = summary.sustained_students || [];
+
+            if (!sustainedStudents.length) {
+                const row = document.createElement('li');
+                row.textContent = 'No student confused more than 1 minute.';
+                sustained.appendChild(row);
+            } else {
+                sustainedStudents.forEach(student => {
+                    const row = document.createElement('li');
+                    row.className = 'sustained-item';
+                    const left = document.createElement('span');
+                    left.textContent = `${student.name} is confusing`;
+                    const right = document.createElement('strong');
+                    right.textContent = `${student.confused_for_seconds}s`;
+                    row.appendChild(left);
+                    row.appendChild(right);
+                    sustained.appendChild(row);
+                });
+            }
+
+            pushChartPoint(summary.engagement || 0, summary.confusion || 0);
+
+            const statusBadge = document.getElementById('statusBadge');
+            if ((summary.active_alerts || 0) > 0) {
+                statusBadge.textContent = 'Status: Sustained confusion detected';
+                statusBadge.style.borderColor = 'rgba(245, 158, 11, 0.9)';
+                statusBadge.style.background = 'rgba(245, 158, 11, 0.2)';
+            } else if ((summary.confusion || 0) > 50) {
+                statusBadge.textContent = 'Status: Class confusion is high';
+                statusBadge.style.borderColor = 'rgba(245, 158, 11, 0.8)';
+                statusBadge.style.background = 'rgba(245, 158, 11, 0.2)';
+            } else {
+                statusBadge.textContent = 'Status: Normal';
+                statusBadge.style.borderColor = 'rgba(59, 130, 246, 0.45)';
+                statusBadge.style.background = 'rgba(59, 130, 246, 0.16)';
+            }
+        });
+
+        document.getElementById('tMic').addEventListener('click', () => {
+            if (!myStream || !myStream.getAudioTracks().length) return;
+            tMicOn = !tMicOn;
+            myStream.getAudioTracks()[0].enabled = tMicOn;
+            const btn = document.getElementById('tMic');
+            btn.classList.toggle('off', !tMicOn);
+            btn.innerHTML = tMicOn ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
+        });
+
+        document.getElementById('tCam').addEventListener('click', () => {
+            if (!myStream || !myStream.getVideoTracks().length) return;
+            tCamOn = !tCamOn;
+            myStream.getVideoTracks()[0].enabled = tCamOn;
+            const btn = document.getElementById('tCam');
+            btn.classList.toggle('off', !tCamOn);
+            btn.innerHTML = tCamOn ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
         });
 
         window.onload = init;
